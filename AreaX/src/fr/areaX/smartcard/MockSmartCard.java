@@ -2,26 +2,43 @@ package fr.areaX.smartcard;
 
 import javax.smartcardio.CardException;
 
+import fr.areaX.crypto.XCryptoKeys;
+
 public class MockSmartCard implements SmartCardInterface {
 
-	private int cardCheck = 0;
+	private int c = 0;
 	private byte[] area1 = null;
 	private byte[] area2 = null;
 	
 	public MockSmartCard() throws CardException{
-		area1 = new byte[64];
-		area2 = new byte[64];
+		area1 = new byte[30];
 		
-		for(int i=0; i<64; i++){
+		XCryptoKeys crytoKeys = new XCryptoKeys();
+		crytoKeys.loadPrivateKey("private.key");
+		
+		for(int i=0; i<30; i++){
 			area1[i] = SmartIdentityCard.getRandomByte();
-			area2[i] = SmartIdentityCard.getRandomByte();
 		}
+		
+		try {
+			area2 = crytoKeys.generateSignature(area1);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	@Override
 	public boolean hasCard() {
-		int i = (++cardCheck % 11);
-		return (i == 10);
+		
+		if (++c < 10){
+			return false;
+		} else if (++c < 100) {
+			c = 0;
+			return true;
+		} else
+			return false;
 	}
 
 	@Override
