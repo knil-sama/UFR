@@ -1,5 +1,6 @@
 package fr.areaX.gui;
 
+import fr.areaX.controller.AreaX;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -32,6 +33,9 @@ public class XStage extends Stage implements XNode {
 	public static final int INSIDE = 5;
 	
 	private int appState = START;
+	StartScreen startScreen = new StartScreen();
+	PinScreen pinScreen = new PinScreen();
+	CameraScreen cameraScreen = new CameraScreen();
 
 	public XStage() {
 		setTitle(appName);
@@ -40,6 +44,18 @@ public class XStage extends Stage implements XNode {
 		initEvents();
 		initPane();
 		this.setScene(scene);
+		
+		Thread th = (new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				AreaX areaX = AreaX.getInstance();
+				areaX.setStartScreenGUI(startScreen);
+				areaX.initialise();
+			}
+		}));
+		th.setDaemon(true);
+		th.start();
 	}
 	
 	public void displayDialogBox(String msg) {
@@ -68,6 +84,9 @@ public class XStage extends Stage implements XNode {
 		//panels.setStyle("-fx-border-color: #E0E0E0; -fx-border-width: 1; -fx-base: lightgreen;");
 		panels.setAlignment(Pos.CENTER);
 		
+		startScreen.setXstage(this);
+		pinScreen.setXstage(this);
+		cameraScreen.setXstage(this);
 	}
 
 	private void setPanel(Node node){
@@ -81,19 +100,14 @@ public class XStage extends Stage implements XNode {
 		
 		switch(appState) {
 			case START:
-				StartScreen start = new StartScreen();
-				start.setXstage(this);
-				setPanel(start);
+				setPanel(startScreen);
 				break;
 			case PIN:
-				PinScreen pin = new PinScreen();
-				pin.setXstage(this);
-				setPanel(pin);
+				setPanel(pinScreen);
 				break;				
 			case CAMERA:
-				CameraScreen camera = new CameraScreen();
-				camera.setXstage(this);
-				setPanel(camera);
+				cameraScreen.startDefaultCamera();
+				setPanel(cameraScreen);
 				break;
 		}
 		

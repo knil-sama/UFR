@@ -3,7 +3,7 @@ package fr.areaX.gui;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-public class AreaX extends Application {
+public class GUIMain extends Application {
 
 	   public static void main(String[] args) {
 	        launch(args);

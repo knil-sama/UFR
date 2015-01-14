@@ -1,5 +1,6 @@
 package fr.areaX.gui;
 
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -8,12 +9,18 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
-public class StartScreen extends StackPane {
+public class StartScreen extends StackPane implements XNode {
 
 	private VBox boxContainer = new VBox();
 	
-	private Label startMessage = new Label("Insert your pass into the reader");
+	private final String initialMessage = "Initializing.. Please wait";
+	private final String insertMessage = "Insert your card into the reader";
+	private final String errorMessage = "Smart Card Terminal not connected";
+
+	private final String className = this.getClass().getSimpleName();
 	
+	private Label startMessage = new Label(initialMessage);
+
 	private XNode xstage = null;
 
 
@@ -32,7 +39,7 @@ public class StartScreen extends StackPane {
 		boxContainer.getChildren().addAll(startMessage);
 		
 		boxContainer.setSpacing(10);
-		boxContainer.setMaxWidth(300);
+		boxContainer.setMaxWidth(400);
 		boxContainer.setMaxHeight(100);
 		boxContainer.setStyle("-fx-border-color: #212a34; -fx-border-width: 1; -fx-padding: 10px;");
 		boxContainer.setAlignment(Pos.CENTER);
@@ -43,8 +50,41 @@ public class StartScreen extends StackPane {
 
 			@Override
 			public void handle(Event arg0) {
-				xstage.onEvent(this.getClass().getSimpleName(), 
-						XNode.TO_PIN_SCREEN, null);
+				if (!startMessage.getText().equals(insertMessage))
+					return;
+				
+			}
+		});
+	}
+
+	@Override
+	public void onEvent(String source, int eventType, Object args) {
+		
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				switch (eventType) {
+				case XNode.SMART_CARD_TERMINAL_ERROR:
+					startMessage.setText(errorMessage);
+					break;
+				case XNode.NO_SMART_CARD:
+					startMessage.setText(insertMessage);
+					break;
+				case XNode.SMART_CARD_VERIFIED:
+					startMessage.setText("Welcome, Updating card");
+					break;
+				case XNode.SMART_CARD_UPDATED:
+					xstage.onEvent(className, XNode.TO_CAMERA_SCREEN, null);
+					break;
+				case XNode.INITIALISATION_ERROR:
+					startMessage.setText("System initialisation failed, Code: IO-01");
+					break;
+				case XNode.SMART_CARD_IO_ERROR:
+					startMessage.setText("Card Read/Write Failed, Code: IO-02");
+					break;
+				}
+				
 			}
 		});
 	}

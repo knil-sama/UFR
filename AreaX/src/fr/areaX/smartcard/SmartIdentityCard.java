@@ -91,6 +91,8 @@ public class SmartIdentityCard implements SmartCardInterface {
 
 		SmartIdentityCard sm = new SmartIdentityCard();
 		
+		System.exit(0);
+		
 		if (!sm.hasCard()){
 			System.out.println("No card in the drive");
 			return;

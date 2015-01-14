@@ -146,12 +146,9 @@ public class CameraScreen extends StackPane {
 				setImageViewSize();
 			}
 		});
-		
-		startDefaultCamera();
-
 	}
 
-	private void startDefaultCamera() {
+	public void startDefaultCamera() {
 		if (Webcam.getWebcams().size()>0) {
 			cameraOptions.getSelectionModel().select(0);
 		}

@@ -1,6 +1,5 @@
 package fr.areaX.smartcard;
 
-import java.io.File;
 import java.util.List;
 
 import javax.smartcardio.Card;
@@ -25,8 +24,8 @@ public class SmartCardDrive {
     		
     		System.out.println("Terminal at index 0 selected as current terminal");
     	} else {
-    		System.err.println("No Terminal selected");
-
+    		System.err.println("FATAL: No Card Terminal detected");
+    		throw new CardException("FATAL: No Card Terminal detected");
     	}
     }
     
