@@ -35,10 +35,10 @@ public class MockSmartCard implements SmartCardInterface {
 		if (++c < 10){
 			return false;
 		} else if (++c < 100) {
-			c = 0;
 			return true;
-		} else
-			return false;
+		} 
+		c = 0;
+		return false;
 	}
 
 	@Override
