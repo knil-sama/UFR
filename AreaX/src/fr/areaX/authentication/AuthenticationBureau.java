@@ -1,10 +1,40 @@
 package fr.areaX.authentication;
 
+import fr.areaX.crypto.XCryptoKeys;
+
 public class AuthenticationBureau implements AuthenticationInterface{
 
+	private XCryptoKeys crytoKeys;
+	
+	public AuthenticationBureau() {
+		crytoKeys = new XCryptoKeys();
+		
+		crytoKeys.loadPrivateKey("private.key");
+		crytoKeys.loadPublicKey("public.key");
+	}
+	
 	@Override
 	public boolean verifySmartCardIdentity(byte[] userData1, byte[] userData2) {
-		// TODO Auto-generated method stub
+		
+		boolean result;
+		//First Step 
+		//verify if the signature (userData2) is valid for the data (userData1)
+		try {
+			result = crytoKeys.verifySignature(userData2, userData1);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		if (!result){
+			//maybe we want to log this activity
+			System.out.println("[INFO] Authentication attempted with false data");
+			return false;
+		}
+
+		//Second step: query the database for the data
+		
 		return true;
 	}
 
@@ -22,7 +52,6 @@ public class AuthenticationBureau implements AuthenticationInterface{
 
 	@Override
 	public byte[][] getNewIdentity(byte[] userData1) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

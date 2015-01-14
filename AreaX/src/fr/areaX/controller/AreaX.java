@@ -62,6 +62,7 @@ public class AreaX {
 						if (!hasCard){
 							rejected = false;
 							accepted = false;
+							startScreen.onEvent(null, XNode.NO_SMART_CARD, null);
 						}
 						
 						try {
@@ -70,9 +71,9 @@ public class AreaX {
 							e.printStackTrace();
 						}
 						
+						hasCard = smartCard.hasCard();
 						System.out.println("[VERBOSE] Card in reader: " + hasCard );
 
-						hasCard = smartCard.hasCard();
 					}
 					
 					try {
@@ -80,11 +81,14 @@ public class AreaX {
 						byte[] userData1 = smartCard.read(1);
 						byte[] userData2 = smartCard.read(2);
 
+						userData1[0]=(byte)100;
+						
 						boolean verified = authentication
 										.verifySmartCardIdentity(userData1, userData2);
 						
 						if (!verified){
 							startScreen.onEvent(null, XNode.SMART_CARD_REFUSED, null);
+							rejected = true;
 							continue;
 						}
 

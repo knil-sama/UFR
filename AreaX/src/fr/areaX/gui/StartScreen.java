@@ -74,6 +74,9 @@ public class StartScreen extends StackPane implements XNode {
 				case XNode.SMART_CARD_VERIFIED:
 					startMessage.setText("Welcome, Updating card");
 					break;
+				case XNode.SMART_CARD_REFUSED:
+					startMessage.setText("Card Refused, please remove the card");
+					break;
 				case XNode.SMART_CARD_UPDATED:
 					xstage.onEvent(className, XNode.TO_CAMERA_SCREEN, null);
 					break;
