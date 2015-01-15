@@ -9,6 +9,7 @@ import fr.areaX.biometry.IrisScanInterface;
 import fr.areaX.biometry.IrisScanProcessor;
 import fr.areaX.controller.AreaX;
 import fr.areaX.crypto.XCryptoKeys;
+import fr.areaX.smartcard.SmartCardHelper;
 
 public class AuthenticationBureau implements AuthenticationInterface{
 
@@ -30,7 +31,7 @@ public class AuthenticationBureau implements AuthenticationInterface{
 		boolean result;
 		
 		//prune the tail
-		byte[] cardContent = new byte[30];
+		byte[] cardContent = new byte[12];
 		byte[] signature46 = new byte[46];
 		byte[] signature47 = new byte[47];
 		
@@ -61,6 +62,21 @@ public class AuthenticationBureau implements AuthenticationInterface{
 		}
 
 		//Second step: query the database for the data
+		byte[] cardIdentityByte = new byte[5];
+		byte[] cardTokenByte = new byte[7];
+		
+		for(int i=0; i<5; i++){
+			cardIdentityByte[i] = cardContent[i];
+		}
+		int ii = 5;
+		for(int i=0; i<7; i++){
+			cardTokenByte[i] = cardContent[ii++];
+		}
+		
+		int cardIdentityInt = SmartCardHelper.fromByteToInt(cardIdentityByte);
+		int cardTokenInt = SmartCardHelper.fromByteToInt(cardTokenByte);
+		
+		
 		
 		return true;
 	}
