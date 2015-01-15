@@ -120,7 +120,7 @@ public class XStage extends Stage implements XNode {
 	}
 
 	@Override
-	public void onEvent(String source, int eventType, Object args) {
+	public void onEvent(final String source, final int eventType,final Object args) {
 
 		Platform.runLater(new Runnable() {
 

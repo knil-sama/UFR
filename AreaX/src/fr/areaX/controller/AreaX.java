@@ -33,8 +33,8 @@ public class AreaX {
 	public void initialise() {
 		try {
 			authentication = new AuthenticationBureau();
-	//		smartCard = new MockSmartCard();
-			smartCard = new SmartIdentityCard();
+			smartCard = new MockSmartCard();
+	//		smartCard = new SmartIdentityCard();
 			scanForSmartCardPermanently();
 
 		} catch (CardException e) {

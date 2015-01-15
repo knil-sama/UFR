@@ -9,6 +9,7 @@ import fr.areaX.biometry.IrisScanInterface;
 import fr.areaX.biometry.IrisScanProcessor;
 import fr.areaX.controller.AreaX;
 import fr.areaX.crypto.XCryptoKeys;
+import fr.areaX.dao.PostgreSQLJDBC;
 
 public class AuthenticationBureau implements AuthenticationInterface{
 
@@ -23,7 +24,23 @@ public class AuthenticationBureau implements AuthenticationInterface{
 		
 		iris = new IrisScanProcessor();
 	}
-	
+	public boolean authenticate(byte[] userData1, byte[] userData2,JSONObject histogram){
+		if(verifySmartCardIdentity(userData1, userData2)){
+			PostgreSQLJDBC server = new PostgreSQLJDBC();
+			try {
+				if(server.authenticate(userData1, histogram)){
+					return true;
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	/**
+	 * must be done after user
+	 */
 	@Override
 	public boolean verifySmartCardIdentity(byte[] userData1, byte[] userData2) {
 		
@@ -59,8 +76,6 @@ public class AuthenticationBureau implements AuthenticationInterface{
 			System.out.println("[INFO] Authentication attempted with false data");
 			return false;
 		}
-
-		//Second step: query the database for the data
 		
 		return true;
 	}
