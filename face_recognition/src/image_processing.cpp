@@ -18,6 +18,44 @@
 using namespace cv;
 using namespace std;
 
+
+class Gradient_magnitude{
+	private:
+		Mat gradient_magnitude;
+		Point gravity_center;
+	public:
+		Gradient_magnitude(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy, int treshold){
+			gradient_magnitude = pic.clone();
+			Mat angle = pic.clone();
+			int x,y;
+			int sum_x = 0,sum_y=0, count=0; 
+			double val;
+			//calculate gradient_magnitude
+			for(x = 0; x < pic.cols;x++){
+				for(y = 0; y < pic.rows; y++){
+					//addition des gradient x et y
+					val = sqrt(pow((double)Iy[x][y],2) + pow((double)Ix[x][y],2));
+					if(val > treshold){
+						sum_x += x;
+						sum_y += y;
+						count += 1;
+						gradient_magnitude.at<uchar>(y,x) = (int)val;
+						//	std::cout << val << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
+					}else{
+						gradient_magnitude.at<uchar>(y,x)  = 0;
+					}
+				}
+			}
+			//calcul gravity center
+			gravity_center = Point((int)(sum_x/count),(int) (sum_y/count));
+		};
+		Mat get_gradient_magnitude(){
+			return gradient_magnitude;
+		}
+		Point get_gravity_center(){
+			return gravity_center;
+		}
+};
 /**!
 \author Samuel.B
 \brief display a image and wait for the user to press a key
@@ -314,34 +352,19 @@ Mat get_angle_alpha(Mat pic, vector<vector<int> > &Ix, vector<vector<int> > &Iy)
 	return angle;
 }
 
-Mat get_angle_beta(Mat pic, vector<vector<int> > &Ix, vector<vector<int> > &Iy){
-	Mat gradient_magnitude = pic.clone();
+Mat get_angle_beta(Mat pic, vector<vector<int> > &Ix, vector<vector<int> > &Iy, int treshold){
+	Gradient_magnitude gradient_magnitude_beta(pic, Ix,Iy,treshold);
+	Mat gradient_magnitude = gradient_magnitude_beta.get_gradient_magnitude();
 	Mat angle = pic.clone();
 	int x,y;
-	int TRESHOLD = 125;
-	int sum_x = 0,sum_y=0, count=0; 
-	//calculate gradient_magnitude
-	for(x = 0; x < pic.cols;x++){
-		for(y = 0; y < pic.rows; y++){
-			double val = sqrt(pow((double)Iy[x][y],2) + pow((double)Ix[x][y],2));
-			if(val > TRESHOLD){
-				sum_x += x;
-				sum_y += y;
-				count += 1;
-			gradient_magnitude.at<uchar>(y,x) = (int)val;
-		//	std::cout << val << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
-			}else{
-				gradient_magnitude.at<uchar>(y,x)  = 0;
-			}
-		}
-	}
-	Point gravity_center = Point((int)(sum_x/count),(int) (sum_y/count));
-	//cout << gravity_center << endl;
+	
+	Point gravity_center = gradient_magnitude_beta.get_gravity_center();
+	
 	//calculate angle between center of gravity and border on horizontal axis
 	for(x = 0; x < pic.cols;x++){
 		for(y = 0; y < pic.rows; y++){
 			
-			if(gradient_magnitude.at<uchar>(y,x) > TRESHOLD){ 
+			if(gradient_magnitude.at<uchar>(y,x) > treshold){ 
 				double val = atan2(y - (double)gravity_center.y,x-(double) gravity_center.x );
 				// atan2 return resultat in radian so we must multiply by 180/PI
 				if(val < 0){
@@ -376,7 +399,7 @@ Mat voting_mat(Mat pic, vector<int> LUT, r){
 	
 }
 */
-Mat get_contours(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy){
+Mat get_contours(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy, int treshold){
 	Mat gradient_magnitude = pic.clone();
 	Mat angle = pic.clone();
 	int x,y;
@@ -386,7 +409,7 @@ Mat get_contours(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy){
 	for(x = 0; x < pic.cols;x++){
 		for(y = 0; y < pic.rows; y++){
 			double val = sqrt(pow((double)Iy[x][y],2) + pow((double)Ix[x][y],2));
-			if(val > TRESHOLD){
+			if(val > treshold){
 				sum_x += x;
 				sum_y += y;
 				count += 1;
@@ -401,6 +424,7 @@ Mat get_contours(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy){
 }
 
 Mat detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<int> > Iy, vector<int> LUT){
+	showPic(contours);
 	Mat alpha_map = contours.clone();
 	vector<vector<int> > vote_map(contours.cols, vector<int>(contours.rows,0));
 	//Mat vote_map = contours.clone();
@@ -526,12 +550,13 @@ Mat detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<
 	return vote_map_visualisation;
 }
 
-Mat recognition_face(Mat shape, Mat analyse){
+Mat recognition_face(Mat shape, Mat analyse, int treshold_lut, int treshold_face){
 	vector<vector<int> > Ix(shape.cols, vector<int>(shape.rows,0));
 	vector<vector<int> > Iy(shape.cols, vector<int>(shape.rows,0));	
 	sobel(shape, Ix, Iy);
 	Mat angle_alpha = get_angle_alpha(shape,Ix,Iy);
-	Mat angle_beta = get_angle_beta(shape,Ix,Iy);
+	//showPic(angle_alpha);
+	Mat angle_beta = get_angle_beta(shape,Ix,Iy,treshold_lut);
 	vector<int> LUT = create_LUT(angle_alpha,angle_beta);
 	for(int i=0; i < 255; i++){
 	//cout << LUT[i] << endl;
@@ -540,11 +565,13 @@ Mat recognition_face(Mat shape, Mat analyse){
 	
 	//Prendre Photo (on simule avec shape pour le moment)
 	//Calculer Ix Iy de la nouvelle image (Sobel)
-	sobel(analyse, Ix, Iy);
-	Mat contours_photo = get_contours(analyse, Ix, Iy);
+	vector<vector<int> > Ix_face(analyse.cols, vector<int>(analyse.rows,0));
+	vector<vector<int> > Iy_face(analyse.cols, vector<int>(analyse.rows,0));	
+	sobel(analyse, Ix_face, Iy_face);
+	Mat contours_photo = get_contours(analyse, Ix_face, Iy_face,treshold_face);
 	//showPic(contours_photo);
 	
-	Mat centers = detect_circle_center(contours_photo,Ix, Iy, LUT);
-	showPic(centers);
-	return angle_beta;
+	Mat centers = detect_circle_center(contours_photo,Ix_face, Iy_face, LUT);
+	//showPic(centers);
+	return centers;
 }
