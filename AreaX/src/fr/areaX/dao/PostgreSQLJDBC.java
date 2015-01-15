@@ -1,4 +1,4 @@
-package dao;
+package fr.areaX.dao;
 import java.sql.Connection;
 
 import org.json.*;
