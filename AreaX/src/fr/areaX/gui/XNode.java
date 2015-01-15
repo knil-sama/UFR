@@ -14,6 +14,7 @@ public interface XNode {
 	public static final int IMAGE_PROCESSING_ERROR = 9;
 	public static final int BIOMETRY_ACCEPTED = 10;
 	public static final int BIOMETRY_REJECTED = 11;
+	public static final int CREATE_NEW_USER = 12;
 
 	public void onEvent(String source, int eventType, Object args);
 	
