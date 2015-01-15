@@ -91,12 +91,13 @@ public class SmartIdentityCard implements SmartCardInterface {
 	
 	public static int getRandomIntId(){
 		int i = 10000;
-		i += (int) Math.random()*1000;
-		return i%10000;
+		i += Math.random()*1000;
+		return i;
 	}
 	public static int getRandomToken(){
-		int i = (int) Math.random()*100000;
-		return i%1000000;
+		int i = 1000000;
+		i += Math.random()*100000;
+		return i;
 	}
 
 	public static void initiliazeCard() throws Exception{
@@ -110,7 +111,7 @@ public class SmartIdentityCard implements SmartCardInterface {
 		
 		int randomIntId = getRandomIntId();
 		int randomIntToken = getRandomToken();
-	
+
 		byte[] byteId = SmartCardHelper.fromIntToByte(randomIntId);
 		byte[] byteToken = SmartCardHelper.fromIntToByte(randomIntToken);
 		int i;
@@ -124,7 +125,8 @@ public class SmartIdentityCard implements SmartCardInterface {
 		}
 		
 		System.out.println("Id generated : " + randomIntId + " " +randomIntToken);
-		System.out.println("Id in byte" + SmartCardHelper.fromByteToInt(cardContent));
+		System.out.println("Id in byte: " + SmartCardHelper.fromByteToInt(byteId)+ " "
+				+ SmartCardHelper.fromByteToInt(byteToken));
 
 		byte[] signature = keys.generateSignature(cardContent);
 
