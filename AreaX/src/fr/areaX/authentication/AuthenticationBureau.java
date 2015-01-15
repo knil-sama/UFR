@@ -1,16 +1,24 @@
 package fr.areaX.authentication;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import fr.areaX.biometry.IrisScanInterface;
+import fr.areaX.biometry.IrisScanProcessor;
 import fr.areaX.crypto.XCryptoKeys;
 
 public class AuthenticationBureau implements AuthenticationInterface{
 
 	private XCryptoKeys crytoKeys;
+	private IrisScanInterface iris;
 	
 	public AuthenticationBureau() {
 		crytoKeys = new XCryptoKeys();
 		
 		crytoKeys.loadPrivateKey("private.key");
 		crytoKeys.loadPublicKey("public.key");
+		
+		iris = new IrisScanProcessor();
 	}
 	
 	@Override
@@ -69,6 +77,31 @@ public class AuthenticationBureau implements AuthenticationInterface{
 	@Override
 	public byte[][] getNewIdentity(byte[] userData1) {
 		return null;
+	}
+
+	@Override
+	public boolean authenticateByBiometry(String imgUrl) {
+		
+		JSONObject jsonReply = iris.parseImage(imgUrl);
+		
+		String processorStatus = (String)jsonReply.get("reply");
+		
+		if(!processorStatus.equalsIgnoreCase("OK")){
+			//maybe we want to notify the concerned module for the processor's error
+			return false;
+		}
+		
+		String histogramStr = (String) jsonReply.getString("data");
+		
+		try {
+			JSONObject histogramJson = new JSONObject(histogramStr);
+
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 
 }
