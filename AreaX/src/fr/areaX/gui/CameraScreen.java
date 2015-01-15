@@ -1,6 +1,7 @@
 package fr.areaX.gui;
 
 import java.awt.Dimension;
+import java.awt.TextField;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -21,6 +22,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -31,9 +33,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import com.github.sarxos.webcam.Webcam;
+
+import fr.areaX.controller.AreaX;
 
 
 /**
@@ -42,7 +47,7 @@ import com.github.sarxos.webcam.Webcam;
  * 
  * @author Rakesh Bhatt (rakeshbhatt10)
  */
-public class CameraScreen extends StackPane {
+public class CameraScreen extends StackPane implements XNode{
 
 	private class WebCamInfo {
 
@@ -89,6 +94,7 @@ public class CameraScreen extends StackPane {
 	
 	private ComboBox<WebCamInfo> cameraOptions;
 	private XNode xstage;
+	private Label statusBar;
 	
 	public CameraScreen() {
 		super();
@@ -130,8 +136,11 @@ public class CameraScreen extends StackPane {
 		bottomCameraControlPane.setDisable(true);
 		createCameraControls();
 		
+		statusBar = new Label("");
+		statusBar.setFont(new Font(15));
 
-		bottomContainer.getChildren().addAll(btnCameraSnap, bottomCameraControlPane);
+		bottomContainer.getChildren().addAll(btnCameraSnap, 
+				bottomCameraControlPane, statusBar);
 		bottomContainer.setPadding(new Insets(10));
 		bottomContainer.setAlignment(Pos.CENTER);
 		
@@ -153,7 +162,21 @@ public class CameraScreen extends StackPane {
 			cameraOptions.getSelectionModel().select(0);
 		}
 	}
-
+	
+	private void removeDialog(String id){
+		ObservableList<Node> children = getChildren();
+		for (Node node : children) {
+			if (node.getId()!=null && node.getId().contains(id))
+				getChildren().remove(node);
+		}
+		
+	}
+	
+	private void setMessage(String msg) {
+		statusBar.setText(msg);
+	}
+	
+	
 	protected void setImageViewSize() {
 
 		double height = webCamPane.getHeight();
@@ -255,6 +278,13 @@ public class CameraScreen extends StackPane {
 								File output = new File("image_snap.jpg");
 								ImageIO.write(grabbedImage, "jpg", output);
 								snapPhoto = false;
+								Platform.runLater(new Runnable() {
+									@Override
+									public void run() {
+										stopWebCamCamera();
+									}
+								});
+								AreaX.getInstance().initBiometry();								
 							}
 							
 							grabbedImage.flush();
@@ -314,6 +344,9 @@ public class CameraScreen extends StackPane {
 			@Override
 			public void handle(ActionEvent evnt) {
 				snapPhoto = true;
+				btnCameraSnap.setText("Verifying..");
+				btnCameraSnap.setDisable(true);
+				statusBar.setText("Processing biometry, please wait ..");
 			}
 		
 		});
@@ -332,12 +365,38 @@ public class CameraScreen extends StackPane {
 		startWebCamStream();
 		btnCamreaStop.setDisable(false);
 		btnCamreaStart.setDisable(true);
+		btnCameraSnap.setText("Snap");
+		btnCameraSnap.setDisable(false);
+		
 	}
 
 	protected void stopWebCamCamera() {
 		stopCamera = true;
 		btnCamreaStart.setDisable(false);
 		btnCamreaStop.setDisable(true);
+	}
+
+
+
+
+	@Override
+	public void onEvent(String source, int eventType, Object args) {
+		String msg;
+		switch(eventType){
+		case XNode.IMAGE_PROCESSING_ERROR:
+			msg = (String) args;
+			System.err.println("Image processing error");
+			setMessage(msg);
+			break;
+		case XNode.BIOMETRY_ACCEPTED:
+			msg = "Biometry successfully verified";
+			setMessage(msg);
+			break;
+		case XNode.BIOMETRY_REJECTED:
+			msg = "Biometry rejected";
+			setMessage(msg);
+			break;
+		}
 	}
 
 }
