@@ -1,5 +1,7 @@
 package fr.areaX.controller;
 
+import java.util.Date;
+
 import javax.smartcardio.CardException;
 
 import fr.areaX.authentication.AuthenticationBureau;
@@ -153,5 +155,28 @@ public class AreaX {
 		} else {
 			gui.onEvent(className, XNode.BIOMETRY_REJECTED,null);
 		}
-	}	
+	}
+	
+	public void createNewUser(final String firstname, 
+			final String lastname, final Date date,
+			final String imgUrl){
+		runNewThread(new Runnable() {
+			@Override
+			public void run() {
+				//CREATE HISTOGRAM FOR THE IMAGEFILE 
+				
+				//DO the INSERT QUERY TO DATABASE
+				
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				
+				//REPLY GUI
+				gui.onEvent(className, XNode.NEW_USER_CREATED, null);
+			}
+		});
+	}
+	
 }
