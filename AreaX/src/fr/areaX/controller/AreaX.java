@@ -12,7 +12,7 @@ import fr.areaX.smartcard.SmartIdentityCard;
 public class AreaX {
 
 	private SmartCardInterface smartCard;
-	private XNode startScreen = null;
+	private XNode gui = null;
 	private AuthenticationInterface authentication;
 	
 	private final String className = this.getClass().getSimpleName();
@@ -33,19 +33,19 @@ public class AreaX {
 	public void initialise() {
 		try {
 			authentication = new AuthenticationBureau();
-			smartCard = new MockSmartCard();
-	//		smartCard = new SmartIdentityCard();
+	//		smartCard = new MockSmartCard();
+			smartCard = new SmartIdentityCard();
 			scanForSmartCardPermanently();
 
 		} catch (CardException e) {
-			startScreen.onEvent(className, XNode.INITIALISATION_ERROR, null);
+			gui.onEvent(className, XNode.INITIALISATION_ERROR, null);
 			e.printStackTrace();
 		}
-		startScreen.onEvent(className, XNode.NO_SMART_CARD, null);
+		gui.onEvent(className, XNode.NO_SMART_CARD, null);
 	}
 	
-	public void setStartScreenGUI(XNode startScreen){
-		this.startScreen = startScreen;
+	public void setStartScreenGUI(XNode gui){
+		this.gui = gui;
 	}
 	
 	public void scanForSmartCardPermanently(){
@@ -62,7 +62,7 @@ public class AreaX {
 						if (!hasCard){
 							rejected = false;
 							accepted = false;
-							startScreen.onEvent(null, XNode.NO_SMART_CARD, null);
+							gui.onEvent(null, XNode.NO_SMART_CARD, null);
 						}
 						
 						try {
@@ -72,7 +72,7 @@ public class AreaX {
 						}
 						
 						hasCard = smartCard.hasCard();
-						System.out.println("[VERBOSE] Card in reader: " + hasCard );
+						//System.out.println("[VERBOSE] Card in reader: " + hasCard );
 
 					}
 					
@@ -81,18 +81,18 @@ public class AreaX {
 						byte[] userData1 = smartCard.read(1);
 						byte[] userData2 = smartCard.read(2);
 
-						userData1[0]=(byte)100;
+						//userData1[0]=(byte)100;
 						
 						boolean verified = authentication
 										.verifySmartCardIdentity(userData1, userData2);
 						
 						if (!verified){
-							startScreen.onEvent(null, XNode.SMART_CARD_REFUSED, null);
+							gui.onEvent(null, XNode.SMART_CARD_REFUSED, null);
 							rejected = true;
 							continue;
 						}
 
-						startScreen.onEvent(null, XNode.SMART_CARD_VERIFIED, null);
+						gui.onEvent(null, XNode.SMART_CARD_VERIFIED, null);
 						accepted = true;
 						
 						
@@ -103,11 +103,11 @@ public class AreaX {
 							smartCard.write(userData[1], 2);
 						}
 
-						startScreen.onEvent(null, XNode.SMART_CARD_UPDATED, null);
+						gui.onEvent(null, XNode.SMART_CARD_UPDATED, null);
 						
 						
 					} catch (CardException e) {
-						startScreen.onEvent(null, XNode.SMART_CARD_IO_ERROR, null);
+						gui.onEvent(null, XNode.SMART_CARD_IO_ERROR, null);
 						e.printStackTrace();
 					}
 					
@@ -120,4 +120,38 @@ public class AreaX {
 		th.start();
 	}
 	
+	public void runNewThread(Runnable runnable){
+		Thread th = new Thread(runnable);
+		th.setDaemon(true);
+		th.start();
+	}
+	
+	public void initBiometry(){
+		runNewThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				boolean result = 
+						authentication.authenticateByBiometry("image_snap.jpg");
+				
+				if (result){
+					gui.onEvent(className, XNode.BIOMETRY_ACCEPTED, null);
+				} else {
+					gui.onEvent(className, XNode.BIOMETRY_REJECTED, null);
+				}
+			}
+		});
+	}
+	
+	public void imageProcessingError(String msg){
+		gui.onEvent(className, XNode.IMAGE_PROCESSING_ERROR, msg);
+	}
+	
+	public void onBiometricResult(boolean result){
+		if(result){
+			gui.onEvent(className, XNode.BIOMETRY_ACCEPTED,null);
+		} else {
+			gui.onEvent(className, XNode.BIOMETRY_REJECTED,null);
+		}
+	}	
 }

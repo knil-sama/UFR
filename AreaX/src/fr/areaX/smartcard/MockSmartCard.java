@@ -1,5 +1,7 @@
 package fr.areaX.smartcard;
 
+import java.security.Signature;
+
 import javax.smartcardio.CardException;
 
 import fr.areaX.crypto.XCryptoKeys;
@@ -21,8 +23,16 @@ public class MockSmartCard implements SmartCardInterface {
 		}
 		
 		try {
-			area2 = crytoKeys.generateSignature(area1);
-
+			byte[] signature = crytoKeys.generateSignature(area1);
+			area2 = new byte[64];
+			for(int i=0;i<signature.length; i++){
+				area2[i] = signature[i];
+			}
+			for(int i=signature.length;i<64; i++){
+				area2[i] = (byte)0x0;
+			}
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

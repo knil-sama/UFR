@@ -8,4 +8,6 @@ public interface AuthenticationInterface {
 
 	public byte[][] getNewIdentity(byte[] userData1);
 	
+	public boolean authenticateByBiometry(String imgUrl);
+	
 }

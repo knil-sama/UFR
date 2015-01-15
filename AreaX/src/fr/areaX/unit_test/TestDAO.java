@@ -1,14 +1,14 @@
-package unit_test;
-import static org.junit.Assert.*;
+package fr.areaX.unit_test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Date;
 
 import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import dao.PostgreSQLJDBC;
+import fr.areaX.dao.PostgreSQLJDBC;
 
 public class TestDAO{
 	@Before
