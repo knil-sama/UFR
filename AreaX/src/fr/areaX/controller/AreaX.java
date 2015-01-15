@@ -33,8 +33,8 @@ public class AreaX {
 	public void initialise() {
 		try {
 			authentication = new AuthenticationBureau();
-			smartCard = new MockSmartCard();
-	//		smartCard = new SmartIdentityCard();
+	//		smartCard = new MockSmartCard();
+			smartCard = new SmartIdentityCard();
 			scanForSmartCardPermanently();
 
 		} catch (CardException e) {
@@ -81,7 +81,7 @@ public class AreaX {
 						byte[] userData1 = smartCard.read(1);
 						byte[] userData2 = smartCard.read(2);
 
-						userData1[0]=(byte)100;
+						//userData1[0]=(byte)100;
 						
 						boolean verified = authentication
 										.verifySmartCardIdentity(userData1, userData2);

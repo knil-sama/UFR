@@ -5,6 +5,8 @@ import javax.smartcardio.CardException;
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
 
+import fr.areaX.crypto.XCryptoKeys;
+
 
 public class SmartIdentityCard implements SmartCardInterface {
 
@@ -54,14 +56,18 @@ public class SmartIdentityCard implements SmartCardInterface {
 			 header = new byte[]{(byte)0x80,(byte) 0xDE,(byte)0x00,(byte)0x28,(byte)0x40};
 			 
 			 
-		 byte[] writeStream = new byte[5 + stream.length];
+		 byte[] writeStream = new byte[64+5];
 		 for(int i=0; i<5; i++){
 			 writeStream[i] = header[i];
 		 }
 		 
 		 int wi = 5;
-		 for(int i=0; i<64; i++){
+		 for(int i=0; i<stream.length; i++){
 			 writeStream[wi++] = stream[i];
+		 }
+		 
+		 for(int i = stream.length; i<64; i++){
+			 writeStream[5+i] = (byte)0x00;
 		 }
 		
 		 ResponseAPDU r;
@@ -78,20 +84,96 @@ public class SmartIdentityCard implements SmartCardInterface {
 	}
 
 	public static byte getRandomByte(){
-		int i = (int) (Math.random()*1000) % 250;
+		int i = (int) (Math.random()*1000) % 50;
 		byte b = (byte)i;
 		return b;
 	}
 	
-	public static void test(){
+	public static void initiliazeCard() throws Exception{
+		SmartIdentityCard sm = new SmartIdentityCard();
+
+		XCryptoKeys keys = new XCryptoKeys();
+		keys.loadPrivateKey("private.key");
+		keys.loadPublicKey("public.key");
+		
+		byte[] cardContent = new byte[30];
+		
+		for(int i =0; i<30; i++){
+			cardContent[i] = getRandomByte();
+		}
+
+		byte[] signature = keys.generateSignature(cardContent);
+
+		if(!sm.hasCard()){
+			System.err.println("No card present in the reader");
+			return;
+		}
+		
+		
+		System.out.println("The size of content is :" + cardContent.length);
+		System.out.println("The size of the signature is " + signature.length);
+		
+		System.out.println("Initializing data to the card");
+		
+		sm.write(cardContent, 1);
+		sm.write(signature, 2);
+
+		System.out.println("Writing to the card user area 1/2 terminated");
+		
+		System.out.println("Verifying the written content");
+		
+
+		byte[] read1 = sm.read(1);
+		byte[] read2 = sm.read(2);
+
+		System.out.println("Card content 1 o : " + SmartCardDrive.toString(cardContent));
+		System.out.println("Card content 1 r : " + SmartCardDrive.toString(read1));
+
+		System.out.println("Card content 2 o : " + SmartCardDrive.toString(signature));
+		System.out.println("Card content 2 r : " + SmartCardDrive.toString(read2));
+
+		boolean equal = true;
+		for(int i = 0; i<cardContent.length; i++){
+
+			System.out.print(cardContent[i] + " " +read1[i]+"\t");
+			if (cardContent[i]!=read1[i]){
+				equal = false;
+				break;
+			}
+		}
+		System.out.println("");
+		
+		if (!equal){
+			System.out.println("Read 1 and cardContent not equal");
+		}
+
+		equal = true;
+		for(int i = 0; i<signature.length; i++){
+
+			System.out.print(signature[i] + " " +read2[i]+"\t");
+
+			if (signature[i]!=read2[i]){
+				equal = false;
+				break;
+			}
+		}
+		System.out.println("");
+		
+		if (!equal){
+			System.out.println("Read 2 and signature not equal");
+		}
+		
+		
 		
 	}
 	
 	public static void main(String[] args) throws Exception {
 
+		initiliazeCard();
+		System.exit(0);
+
 		SmartIdentityCard sm = new SmartIdentityCard();
 		
-		System.exit(0);
 		
 		if (!sm.hasCard()){
 			System.out.println("No card in the drive");

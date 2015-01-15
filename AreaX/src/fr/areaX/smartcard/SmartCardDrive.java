@@ -92,7 +92,7 @@ public class SmartCardDrive {
         System.out.println(texte);
         System.out.println("fin lecture");
         System.out.println("debut ecriture");
-        byte apdu2[]={(byte)0x80,(byte) 0xDE,(byte)0x00,(byte)0x10,(byte)0x04,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x01};
+        byte apdu2[]={(byte)0x80,(byte) 0xDE,(byte)0x00,(byte)0x10,(byte)0x08,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x01};
         commande = new CommandAPDU(apdu2);//test code pin
         r = channel.transmit(commande);
         System.out.println("reponse2 : " + "SW1 : 0x"+Integer.toHexString(r.getSW1())+" SW2 : 0x"+Integer.toHexString(r.getSW2())+" data : "+cardDriver.toString(r.getData()));
