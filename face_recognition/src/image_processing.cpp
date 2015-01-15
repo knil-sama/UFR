@@ -280,10 +280,11 @@ Mat dilate_clement(Mat image){
 vector<int> create_LUT(Mat angle_alpha, Mat angle_beta){
 	//to be sure 
 	vector<int> LUT(256, -1);
-	cvSetZero(voting_mat);
-	int val_beta = angle_beta.at<uchar>(y,x);
-	for(x = 0; x < pic.cols;x++){
-		for(y = 0; y < pic.rows; y++){
+	//cvSetZero(voting_mat);
+	int val_beta;
+	int x,y;
+	for(x = 0; x < angle_beta.cols;x++){
+		for(y = 0; y < angle_beta.rows; y++){
 			val_beta = angle_beta.at<uchar>(y,x);
 			if(val_beta > 0){
 				LUT[angle_alpha.at<uchar>(y,x)] = val_beta;
@@ -304,7 +305,9 @@ Mat get_angle_alpha(Mat pic, vector<vector<int> > &Ix, vector<vector<int> > &Iy)
 			}else{
 				angle.at<uchar>(y,x) = (int)(((val * 57.29)/360)*255);				
 			}
-			std::cout << (int)(val * 57.29) << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
+			
+			//std::cout<< (int)(val * 57.29) << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
+			
 		}
 	}
 	std::cout << std::endl;
@@ -326,27 +329,27 @@ Mat get_angle_beta(Mat pic, vector<vector<int> > &Ix, vector<vector<int> > &Iy){
 				sum_y += y;
 				count += 1;
 			gradient_magnitude.at<uchar>(y,x) = (int)val;
-			std::cout << val << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
+		//	std::cout << val << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
 			}else{
 				gradient_magnitude.at<uchar>(y,x)  = 0;
 			}
 		}
 	}
 	Point gravity_center = Point((int)(sum_x/count),(int) (sum_y/count));
-	cout << gravity_center << endl;
+	//cout << gravity_center << endl;
 	//calculate angle between center of gravity and border on horizontal axis
 	for(x = 0; x < pic.cols;x++){
 		for(y = 0; y < pic.rows; y++){
 			
 			if(gradient_magnitude.at<uchar>(y,x) > TRESHOLD){ 
-				double val = atan2((double)gravity_center.y - y,(double) gravity_center.x - x);
+				double val = atan2(y - (double)gravity_center.y,x-(double) gravity_center.x );
 				// atan2 return resultat in radian so we must multiply by 180/PI
 				if(val < 0){
 					angle.at<uchar>(y,x) = (int)((((val * 57.29)+360)/360) * 255);
 				}else{
 					angle.at<uchar>(y,x) = (int)(((val * 57.29)/360)*255);					
 				}
-				std::cout << (int)(val * 57.29) << "x " << y << "y " << x << std::endl;
+			//	std::cout << (int)(val * 57.29) << "x " << y << "y " << x << std::endl;
 
 			}else{
 				angle.at<uchar>(y,x) = 0;
@@ -355,6 +358,8 @@ Mat get_angle_beta(Mat pic, vector<vector<int> > &Ix, vector<vector<int> > &Iy){
 	}
 	return angle;
 }
+
+
 Mat get_Mat_from_vector(Mat pic, vector<vector<int> > a){
 	Mat result = pic.clone();
 	int x;
@@ -366,13 +371,180 @@ Mat get_Mat_from_vector(Mat pic, vector<vector<int> > a){
 	}
 	return result;
 }
+/*
+Mat voting_mat(Mat pic, vector<int> LUT, r){
+	
+}
+*/
+Mat get_contours(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy){
+	Mat gradient_magnitude = pic.clone();
+	Mat angle = pic.clone();
+	int x,y;
+	int TRESHOLD = 185;
+	int sum_x = 0,sum_y=0, count=0; 
+	//calculate gradient_magnitude
+	for(x = 0; x < pic.cols;x++){
+		for(y = 0; y < pic.rows; y++){
+			double val = sqrt(pow((double)Iy[x][y],2) + pow((double)Ix[x][y],2));
+			if(val > TRESHOLD){
+				sum_x += x;
+				sum_y += y;
+				count += 1;
+			gradient_magnitude.at<uchar>(y,x) = (int)val;
+			//std::cout << val << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
+			}else{
+				gradient_magnitude.at<uchar>(y,x)  = 0;
+			}
+		}
+	}
+	return gradient_magnitude;
+}
 
-Mat recognition_face(Mat pic){
-	vector<vector<int> > Ix(pic.cols, vector<int>(pic.rows,0));
-	vector<vector<int> > Iy(pic.cols, vector<int>(pic.rows,0));	
-	sobel(pic, Ix, Iy);
-	Mat angle_alpha = get_angle_alpha(pic,Ix,Iy);
-	Mat angle_beta = get_angle_beta(pic,Ix,Iy);
+Mat detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<int> > Iy, vector<int> LUT){
+	Mat alpha_map = contours.clone();
+	vector<vector<int> > vote_map(contours.cols, vector<int>(contours.rows,0));
+	//Mat vote_map = contours.clone();
+	Mat vote_map_visualisation = contours.clone();
+	
+	//mettre à vide
+	int x,y; 
+	for(x = 0; x < contours.cols;x++){
+		for(y = 0; y < contours.rows; y++){
+			vote_map_visualisation.at<uchar>(y,x) = 0;
+		}
+	}
+	
+	//Creation de la map d'alpha
+	for(x = 0; x < contours.cols;x++){
+		for(y = 0; y < contours.rows; y++){
+			if(contours.at<uchar>(y,x) > 0){
+				double val = atan2((double)Iy[x][y],(double)Ix[x][y]);
+				if(val < 0){
+				alpha_map.at<uchar>(y,x) = (int)(((val * 57.29)+360)/360*255);
+				}else{
+					alpha_map.at<uchar>(y,x) = (int)(((val * 57.29)/360)*255);				
+				}
+			//std::cout << (int)(val * 57.29) << " " << Iy[x][y] << " " << Ix[x][y]<< std::endl;
+			}else{
+				alpha_map.at<uchar>(y,x) = 0;
+			}
+		}
+	}
+	
+	//Vote des Betas 
+	for(x = 0; x < alpha_map.cols;x++){
+		for(y = 0; y < alpha_map.rows; y++){
+			int val_alpha = alpha_map.at<uchar>(y,x);
+			if(val_alpha != 0){
+				int beta = LUT[val_alpha];
+				if(beta != -1){
+					
+					//Les bons points de contours sont selectionnés
+					//cout << "point de contours x : " << x << "  y : " << y << "  Beta Angle : " << beta << endl;
+					
+					int normalized_beta =(int) (((double)beta/255.0)*360.0);
+					double radiant_beta = normalized_beta * 3.14 / 180.0;
+					int x_parcours;
+					int y_parcours;
+						for(int i =-30;i<30;i++){
+							x_parcours =(int)(x + -i*cos(radiant_beta));
+							y_parcours = (int)(y + -i*sin (radiant_beta));
+							if(x_parcours < vote_map_visualisation.cols && x_parcours > 0 && y_parcours < vote_map_visualisation.rows && y_parcours >0){
+								vote_map[x_parcours][y_parcours] += 1;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	int max_value= 0;
+	int max_value_2 = 0;
 
+	Point point_vote_1;
+	Point point_vote_2;
+	Point point_vote_temp;
+	
+	point_vote_2.x = 0;
+	point_vote_2.y = 0;
+	
+	point_vote_temp.x = 0;
+	point_vote_temp.y = 0;
+	
+	point_vote_1.x = 0;
+	point_vote_1.y = 0;
+	
+	//Reccuperation du 1er point les plus importants
+	for(x = 0; x < vote_map_visualisation.cols;x++){
+		for(y = 0; y < vote_map_visualisation.rows; y++){	
+				if( vote_map[x][y] > max_value){
+					
+					max_value= vote_map[x][y];
+					
+					
+					point_vote_1.x = x;
+					point_vote_1.y = y;
+						
+				
+			}
+		}
+	}
+	//Reccuperation du 2eme point
+
+	for(x = 0; x < vote_map_visualisation.cols;x++){
+		for(y = 0; y < vote_map_visualisation.rows; y++){	
+			if( vote_map[x][y] > max_value_2){
+				
+						point_vote_temp.x = x;
+						point_vote_temp.y = y;
+				
+				if(sqrt( pow((point_vote_1.x - point_vote_temp.x ),2) + pow((point_vote_1.y - point_vote_temp.y),2)) > 80){
+						
+						max_value_2 = vote_map[x][y];
+						
+						point_vote_2.x = x;
+						point_vote_2.y = y;
+						
+				}
+			}
+		}
+	}
+	
+
+	
+	//Normalisation pour visualisation
+	for(x = 0; x < vote_map_visualisation.cols;x++){
+		for(y = 0; y < vote_map_visualisation.rows; y++){	
+			
+			vote_map_visualisation.at<uchar>(y,x) = (int)(((double)vote_map[x][y]/(double)max_value)*255.0);
+			
+			//cout << (int)vote_map_visualisation.at<uchar>(y,x) << endl;
+		}
+	}
+	
+	cout << "Point max 1  : x =  " << point_vote_1.x << " y = "<< point_vote_1.y << "Point_max_2 : x = "<< point_vote_2.x<< "  y  = "<< point_vote_2.y << endl;			
+	return vote_map_visualisation;
+}
+
+Mat recognition_face(Mat shape, Mat analyse){
+	vector<vector<int> > Ix(shape.cols, vector<int>(shape.rows,0));
+	vector<vector<int> > Iy(shape.cols, vector<int>(shape.rows,0));	
+	sobel(shape, Ix, Iy);
+	Mat angle_alpha = get_angle_alpha(shape,Ix,Iy);
+	Mat angle_beta = get_angle_beta(shape,Ix,Iy);
+	vector<int> LUT = create_LUT(angle_alpha,angle_beta);
+	for(int i=0; i < 255; i++){
+	//cout << LUT[i] << endl;
+	}
+	//Mat voting_mat(shape,LUT,20);
+	
+	//Prendre Photo (on simule avec shape pour le moment)
+	//Calculer Ix Iy de la nouvelle image (Sobel)
+	sobel(analyse, Ix, Iy);
+	Mat contours_photo = get_contours(analyse, Ix, Iy);
+	//showPic(contours_photo);
+	
+	Mat centers = detect_circle_center(contours_photo,Ix, Iy, LUT);
+	showPic(centers);
 	return angle_beta;
 }

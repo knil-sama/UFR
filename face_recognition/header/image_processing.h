@@ -47,6 +47,6 @@ cv::Mat sobelVerti(cv::Mat pic);
 
 std::vector<int> create_LUT(cv::Mat angle);
 
-cv::Mat recognition_face(cv::Mat pic);
+cv::Mat recognition_face(cv::Mat pic, cv::Mat face);
 
 #endif
