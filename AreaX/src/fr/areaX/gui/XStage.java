@@ -32,12 +32,14 @@ public class XStage extends Stage implements XNode {
 	public static final int CAMERA = 3;
 	public static final int INVALID = 4;
 	public static final int INSIDE = 5;
+	public static final int CREATE = 6;
+	public static final int ASSOCIATE = 7;
 
-	private int appState = START;
+	private int appState = CREATE;
 	StartScreen startScreen = new StartScreen();
 	PinScreen pinScreen = new PinScreen();
 	CameraScreen cameraScreen = new CameraScreen();
-
+	
 	public XStage() {
 		setTitle(appName);
 		scene = new Scene(root, 800, 700);
@@ -57,7 +59,7 @@ public class XStage extends Stage implements XNode {
 			}
 		}));
 		th.setDaemon(true);
-		th.start();
+	//	th.start();
 	}
 
 	public void displayDialogBox(String msg) {
@@ -110,6 +112,10 @@ public class XStage extends Stage implements XNode {
 		case CAMERA:
 			cameraScreen.startDefaultCamera();
 			setPanel(cameraScreen);
+			break;
+		case CREATE:
+			AdminScreen createUserScreen = new AdminScreen();
+			setPanel(createUserScreen);
 			break;
 		}
 
