@@ -18,6 +18,7 @@ import javafx.scene.layout.VBox;
 
 public class AdminScreen extends StackPane implements XNode {
 
+	private final String className = this.getClass().getSimpleName();
 	
 	VBox rootPane = new VBox();
 	
@@ -35,13 +36,20 @@ public class AdminScreen extends StackPane implements XNode {
 	private Button createUserBtn = new Button("Create User");
 	
 	private Label status = new Label("Status");
+	private XNode listener;
 	
 	public AdminScreen() {
 		initlayout();
-		
 		cameraNode.setEventListener(this);
+	}
+	
+	public void startDefaultCamera(){
 		cameraNode.startDefaultCamera();
 		deleteImgFile();
+	}
+	
+	public void setListener(XNode listener){
+		this.listener = listener;
 	}
 	
 	private void initlayout() {
@@ -120,6 +128,7 @@ public class AdminScreen extends StackPane implements XNode {
 
 				status.setText("Inserting into database..");
 				
+				listener.onEvent(className, XNode.CREATE_NEW_USER, createUserParams);
 			}
 		});
 	}
@@ -133,7 +142,21 @@ public class AdminScreen extends StackPane implements XNode {
 
 	@Override
 	public void onEvent(String source, int eventType, Object args) {
-		
+		switch (eventType) {
+		case XNode.NEW_USER_CREATED:
+			status.setText("New User Created");
+			fnField.setText("");
+			lnField.setText("");
+			dobField.setText("");
+			deleteImgFile();
+			createUserBtn.setText("Create User");
+			createUserBtn.setDisable(false);
+			cameraNode.startWebCamCamera();
+			break;
+
+		default:
+			break;
+		}
 	}
 	
 	

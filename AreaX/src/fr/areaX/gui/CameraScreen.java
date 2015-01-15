@@ -42,9 +42,7 @@ import fr.areaX.controller.AreaX;
 
 
 /**
- * This example demonstrates how to use Webcam Capture API in a JavaFX
- * application.
- * 
+ * Taken from 
  * @author Rakesh Bhatt (rakeshbhatt10)
  */
 public class CameraScreen extends StackPane implements XNode{
@@ -101,13 +99,9 @@ public class CameraScreen extends StackPane implements XNode{
 		initLayout();
 	}
 
-
-	
-
 	public void setXstage(XNode xstage) {
 		this.xstage = xstage;
 	}
-
 	
 	private void initLayout() {
 

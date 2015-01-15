@@ -1,5 +1,7 @@
 package fr.areaX.gui;
 
+import java.util.Date;
+
 import fr.areaX.controller.AreaX;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -35,10 +37,11 @@ public class XStage extends Stage implements XNode {
 	public static final int CREATE = 6;
 	public static final int ASSOCIATE = 7;
 
-	private int appState = CREATE;
+	private int appState = START;
 	StartScreen startScreen = new StartScreen();
 	PinScreen pinScreen = new PinScreen();
 	CameraScreen cameraScreen = new CameraScreen();
+	AdminScreen createUserScreen = new AdminScreen();
 	
 	public XStage() {
 		setTitle(appName);
@@ -59,7 +62,7 @@ public class XStage extends Stage implements XNode {
 			}
 		}));
 		th.setDaemon(true);
-	//	th.start();
+		th.start();
 	}
 
 	public void displayDialogBox(String msg) {
@@ -91,6 +94,7 @@ public class XStage extends Stage implements XNode {
 		startScreen.setXstage(this);
 		pinScreen.setXstage(this);
 		cameraScreen.setXstage(this);
+		createUserScreen.setListener(this);
 	}
 
 	private void setPanel(Node node){
@@ -114,7 +118,7 @@ public class XStage extends Stage implements XNode {
 			setPanel(cameraScreen);
 			break;
 		case CREATE:
-			AdminScreen createUserScreen = new AdminScreen();
+			createUserScreen.startDefaultCamera();
 			setPanel(createUserScreen);
 			break;
 		}
@@ -148,12 +152,31 @@ public class XStage extends Stage implements XNode {
 				case XNode.SMART_CARD_UPDATED:
 				case XNode.INITIALISATION_ERROR:
 				case XNode.SMART_CARD_IO_ERROR:
+					if (appState != START)
+						return;
 					startScreen.onEvent(source, eventType, args);
 					break;
 				case XNode.IMAGE_PROCESSING_ERROR:
 				case XNode.BIOMETRY_REJECTED:
 				case XNode.BIOMETRY_ACCEPTED:
 					cameraScreen.onEvent(source, eventType, args);
+					break;
+					
+				case XNode.CREATE_NEW_USER:
+					System.out.println("Creating new users with parameters");
+					
+					Object[] params = (Object[]) args;
+					String firstname = (String) params[0];
+					String lastname = (String) params[1];
+					Date dateofbirth = (Date) params[2];
+					String imgUrl = (String) params[3];
+					
+					AreaX.getInstance().createNewUser(
+							firstname, lastname, dateofbirth, imgUrl);
+					break;
+				case XNode.NEW_USER_CREATED:
+					System.out.println("New user created");
+					createUserScreen.onEvent(source, eventType, args);
 					break;
 				}
 			}
