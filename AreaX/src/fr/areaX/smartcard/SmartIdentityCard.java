@@ -89,6 +89,16 @@ public class SmartIdentityCard implements SmartCardInterface {
 		return b;
 	}
 	
+	public static int getRandomIntId(){
+		int i = 10000;
+		i += (int) Math.random()*1000;
+		return i%10000;
+	}
+	public static int getRandomToken(){
+		int i = (int) Math.random()*100000;
+		return i%1000000;
+	}
+
 	public static void initiliazeCard() throws Exception{
 		SmartIdentityCard sm = new SmartIdentityCard();
 
@@ -96,11 +106,25 @@ public class SmartIdentityCard implements SmartCardInterface {
 		keys.loadPrivateKey("private.key");
 		keys.loadPublicKey("public.key");
 		
-		byte[] cardContent = new byte[30];
+		byte[] cardContent = new byte[12];
 		
-		for(int i =0; i<30; i++){
-			cardContent[i] = getRandomByte();
+		int randomIntId = getRandomIntId();
+		int randomIntToken = getRandomToken();
+	
+		byte[] byteId = SmartCardHelper.fromIntToByte(randomIntId);
+		byte[] byteToken = SmartCardHelper.fromIntToByte(randomIntToken);
+		int i;
+		for(i=0; i<byteId.length; i++){
+			cardContent[i] = byteId[i];
 		}
+		
+		int ii=0;
+		for(i=byteId.length; i<12; i++){
+			cardContent[i] = byteToken[ii++];
+		}
+		
+		System.out.println("Id generated : " + randomIntId + " " +randomIntToken);
+		System.out.println("Id in byte" + SmartCardHelper.fromByteToInt(cardContent));
 
 		byte[] signature = keys.generateSignature(cardContent);
 
@@ -133,7 +157,7 @@ public class SmartIdentityCard implements SmartCardInterface {
 		System.out.println("Card content 2 r : " + SmartCardDrive.toString(read2));
 
 		boolean equal = true;
-		for(int i = 0; i<cardContent.length; i++){
+		for(i = 0; i<cardContent.length; i++){
 
 			System.out.print(cardContent[i] + " " +read1[i]+"\t");
 			if (cardContent[i]!=read1[i]){
@@ -148,7 +172,7 @@ public class SmartIdentityCard implements SmartCardInterface {
 		}
 
 		equal = true;
-		for(int i = 0; i<signature.length; i++){
+		for(i = 0; i<signature.length; i++){
 
 			System.out.print(signature[i] + " " +read2[i]+"\t");
 
