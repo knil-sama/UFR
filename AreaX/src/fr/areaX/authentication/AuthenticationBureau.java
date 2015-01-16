@@ -27,7 +27,7 @@ public class AuthenticationBureau implements AuthenticationInterface{
 	}
 	
 	@Override
-	public int authenticate(byte[] userData1, byte[] userData2,JSONObject histogram){
+	public int authenticate(byte[] userData1, byte[] userData2,String histogram){
 		if(verifySmartCardIdentity(userData1, userData2)){
 			PostgreSQLJDBC server = new PostgreSQLJDBC();
 			//Second step: query the database for the data
@@ -42,7 +42,7 @@ public class AuthenticationBureau implements AuthenticationInterface{
 			
 			
 			try {
-				Integer tokenSessionActive = server.authenticate(identityCard,tokenCard, histogram.getJSONArray("0"));
+				Integer tokenSessionActive = server.authenticate(identityCard,tokenCard, histogram);
 				if(tokenSessionActive != 0){
 					return tokenSessionActive;
 				}

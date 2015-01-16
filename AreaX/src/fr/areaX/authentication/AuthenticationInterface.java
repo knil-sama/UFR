@@ -13,6 +13,6 @@ public interface AuthenticationInterface {
 	public boolean authenticateByBiometry(String imgUrl);
 
 	int authenticate(byte[] userData1, byte[] userData2,
-			JSONObject histogram);
+			String histogram);
 	
 }
