@@ -165,6 +165,21 @@ public class PostgreSQLJDBC {
 		}
 		return true;
 	}
+	
+	public boolean setCardActive(int id_card, boolean state){
+		Connection c = connectToDatabase();
+		try {
+			Statement commande = c.createStatement();
+			String sql = "UPDATE cards SET active="+state+" WHERE id_card="+id_card;
+			commande.executeUpdate(sql);
+			commande.close();
+			// c.commit();
+			c.close();
+		} catch (SQLException e) {
+			return false;
+		}
+		return true;
+	}
 
 	public boolean createUser(int id, String first_name, String last_name,
 			Date birthdate, JSONArray histo) {
@@ -200,9 +215,10 @@ public class PostgreSQLJDBC {
 	 * @param histo
 	 * @return
 	 */
-	public boolean createUser(String first_name, String last_name,
+	public int createUser(String first_name, String last_name,
 			Date birthdate, JSONObject histo) {
 		Connection c = connectToDatabase();
+		int id_user_inserted = -1;
 		try {
 			Statement commande = c.createStatement();
 			// date format YYYY-MM-DD
@@ -211,17 +227,19 @@ public class PostgreSQLJDBC {
 					+ "','"
 					+ last_name
 					+ "','"
-					+ birthdate.toString() + "','" + histo.toString() + "')";
-			commande.executeUpdate(sql);
+					+ birthdate.toString() + "','" + histo.toString() + "') RETURNING id_user";
+			ResultSet result = commande.executeQuery(sql);
+			if(result.next()){
+				result.getInt("id_user");
+			}
 			commande.close();
 			// c.commit();
 			c.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return false;
 		}
-		return true;
+		return id_user_inserted;
 	}
 
 	public boolean verifyToken(String identifiant_card, String token) {
@@ -283,7 +301,8 @@ public class PostgreSQLJDBC {
 	}
 
 	public Integer authenticate(int identityCard, int tokenSession,
-			JSONArray histogram) throws Exception {
+			String histogram_string) throws Exception {
+		JSONArray histogram = new JSONArray(histogram_string);
 		ArrayList<Integer> user_matched = findUsersByBiometric(histogram);
 		if (user_matched.size() <= 0) {
 			//throw new Exception("user not find by biometrics");
@@ -305,7 +324,7 @@ public class PostgreSQLJDBC {
 		return 0;
 	}
 
-	private Integer sessionValid(int user_id, int tokenSession) {
+	public Integer sessionValid(int user_id, int tokenSession) {
 		Connection c = connectToDatabase();
 		try {
 			Statement commande = c.createStatement();
@@ -337,11 +356,11 @@ public class PostgreSQLJDBC {
 		return null;
 	}
 
-	private Integer generateNewToken(int user_id) {
+	public Integer generateNewToken(int user_id) {
 		return 1;
 	}
 
-	private boolean userIsCardOwner(int id_user, int id_card) throws Exception {
+	public boolean userIsCardOwner(int id_user, int id_card) throws Exception {
 		Connection c = connectToDatabase();
 		Statement commande = null;
 		try {
@@ -371,13 +390,13 @@ public class PostgreSQLJDBC {
 	 * @return
 	 * @throws Exception
 	 */
-	private boolean cardIsValid(int id_card_tested) throws Exception {
+	public boolean cardIsValid(int id_card_tested) {
 		Connection c = connectToDatabase();
 		Statement commande = null;
 		try {
 			commande = c.createStatement();
 			String sql = "SELECT active FROM cards WHERE id_card="
-					+ id_card_tested;
+					+ id_card_tested +" AND active=TRUE";
 			ResultSet result = commande.executeQuery(sql);
 			if (result.next()) {
 				boolean card_active = result.getBoolean(1);
@@ -385,10 +404,10 @@ public class PostgreSQLJDBC {
 					return true;
 				}
 			}
-		} catch (Exception e) {
-			throw e;
-		} finally {
 			commande.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
 		}
 		return false;
 	}
@@ -436,6 +455,12 @@ public class PostgreSQLJDBC {
 		return token;
 	}
 	public void generateMockDatabase(){
-		createCard();
+		int id_card_with_user = createCard();
+		int id_card_inactive = createCard();
+		setCardActive(id_card_inactive, false);
+		int id_card_none_affected = createCard();
+		createUser("clement", "demonchy", new Date(0),new JSONObject("[0.4,0.6]"));
+		
 	}
+	
 }

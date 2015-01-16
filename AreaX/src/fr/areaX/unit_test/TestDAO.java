@@ -81,6 +81,14 @@ public class TestDAO{
 		assertEquals(0,server.findUsersByBiometric(json_histo_bis).size());
 	}
 	@Test
+	public void changeState(){
+		PostgreSQLJDBC server = new PostgreSQLJDBC();
+		int id_card = server.createCard();
+		assertTrue(server.cardIsValid(id_card));
+		server.setCardActive(id_card, false);
+		assertFalse(server.cardIsValid(id_card));
+	}
+	@Test
 	public void batamachin(){
 		JSONArray json_histo = new JSONArray();
 		json_histo.put(0,0.5);
