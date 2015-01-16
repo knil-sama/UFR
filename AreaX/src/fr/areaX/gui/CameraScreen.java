@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.TextField;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.MalformedURLException;
 
 import javax.imageio.ImageIO;
 
@@ -27,6 +28,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -76,6 +78,7 @@ public class CameraScreen extends StackPane implements XNode{
 
 	private FlowPane bottomCameraControlPane;
 	private FlowPane topPane;
+	private Slider slider;
 	private BorderPane root;
 	private String cameraListPromptText = "Choose Camera";
 	private ImageView imgWebCamCapturedImage;
@@ -111,6 +114,7 @@ public class CameraScreen extends StackPane implements XNode{
 		topPane.setHgap(20);
 		topPane.setOrientation(Orientation.HORIZONTAL);
 		topPane.setPrefHeight(40);
+		
 		root.setTop(topPane);
 		webCamPane = new BorderPane();
 		webCamPane.setStyle("-fx-background-color: #ccc;");
@@ -215,7 +219,18 @@ public class CameraScreen extends StackPane implements XNode{
 		});
 
 
+		slider = new Slider();
+		slider.setMin(0);
+		slider.setMax(1);
+		slider.setValue(0.5);
+		slider.setShowTickLabels(true);
+		slider.setShowTickMarks(true);
+		slider.setMajorTickUnit(0.5);
+		slider.setMinorTickCount(5);
+		slider.setBlockIncrement(10);
+
 		topPane.getChildren().add(cameraOptions);
+		topPane.getChildren().addAll(new Label("Threshold "),slider);
 	}
 
 	protected void initializeWebCam(final int webCamIndex) {
@@ -278,9 +293,12 @@ public class CameraScreen extends StackPane implements XNode{
 										stopWebCamCamera();
 									}
 								});
+								
+								int valInt = (int)((slider.getValue()*100)%101);
+								double value = (double)valInt/100;
+								System.out.println("Value is : " + value);
 								AreaX.getInstance().initBiometry();								
 							}
-							
 							grabbedImage.flush();
 						}
 					} catch (Exception e) {
@@ -368,9 +386,8 @@ public class CameraScreen extends StackPane implements XNode{
 		stopCamera = true;
 		btnCamreaStart.setDisable(false);
 		btnCamreaStop.setDisable(true);
+
 	}
-
-
 
 
 	@Override
@@ -390,6 +407,23 @@ public class CameraScreen extends StackPane implements XNode{
 			msg = "Biometry rejected";
 			setMessage(msg);
 			break;
+		case XNode.SHOW_IMAGE:
+			String imgUrl = (String) args;
+			
+			File file = new File("demo.png");
+			imgUrl = file.toURI().toString();
+			
+			final String fimgUrl = imgUrl;
+			Platform.runLater(new Runnable() {
+				
+				@Override
+				public void run() {
+//					System.out.println("displaying img : " + fimgUrl);
+					Image newImage = new Image(fimgUrl);
+					System.out.println(newImage.getHeight());
+					imageProperty.set(newImage);
+				}
+			});
 		}
 	}
 

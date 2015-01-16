@@ -16,6 +16,7 @@ public interface XNode {
 	public static final int BIOMETRY_REJECTED = 11;
 	public static final int CREATE_NEW_USER = 12;
 	public static final int NEW_USER_CREATED = 13;
+	public static final int SHOW_IMAGE = 14;
 
 	public void onEvent(String source, int eventType, Object args);
 	

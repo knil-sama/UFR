@@ -37,7 +37,7 @@ public class XStage extends Stage implements XNode {
 	public static final int CREATE = 6;
 	public static final int ASSOCIATE = 7;
 
-	private int appState = START;
+	private int appState = CAMERA;
 	StartScreen startScreen = new StartScreen();
 	PinScreen pinScreen = new PinScreen();
 	CameraScreen cameraScreen = new CameraScreen();
@@ -160,6 +160,7 @@ public class XStage extends Stage implements XNode {
 				case XNode.BIOMETRY_REJECTED:
 				case XNode.BIOMETRY_ACCEPTED:
 					cameraScreen.onEvent(source, eventType, args);
+				//	cameraScreen.onEvent(source, XNode.SHOW_IMAGE, "image_snap2.jpg");
 					break;
 					
 				case XNode.CREATE_NEW_USER:
