@@ -257,6 +257,20 @@ int min_neighborhood(Mat image, Point central_point){
 	return min_result;
 }
 
+Mat circle_eye(Mat pic, Point eye_center){
+	
+	Mat circled_eye = pic.clone();
+
+	cvtColor(circled_eye, circled_eye, CV_GRAY2BGR);
+ circle( circled_eye,
+         eye_center,
+         20.0,
+         Scalar( 0, 0, 255 ),
+         1,
+         8 );
+         
+       return circled_eye;
+ } 
 /**!
 \author Clement.D
 \brief do the sum of the dirence between the neighborhood of two pixel that are not on the same image
@@ -423,8 +437,8 @@ Mat get_contours(Mat pic,  vector<vector<int> > Ix,  vector<vector<int> > Iy, in
 	return gradient_magnitude;
 }
 
-Mat detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<int> > Iy, vector<int> LUT){
-	showPic(contours);
+Point detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<int> > Iy, vector<int> LUT){
+	//showPic(contours);
 	Mat alpha_map = contours.clone();
 	vector<vector<int> > vote_map(contours.cols, vector<int>(contours.rows,0));
 	//Mat vote_map = contours.clone();
@@ -470,7 +484,7 @@ Mat detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<
 					double radiant_beta = normalized_beta * 3.14 / 180.0;
 					int x_parcours;
 					int y_parcours;
-						for(int i =-30;i<30;i++){
+						for(int i =3;i<30;i++){
 							x_parcours =(int)(x + -i*cos(radiant_beta));
 							y_parcours = (int)(y + -i*sin (radiant_beta));
 							if(x_parcours < vote_map_visualisation.cols && x_parcours > 0 && y_parcours < vote_map_visualisation.rows && y_parcours >0){
@@ -546,11 +560,56 @@ Mat detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vector<
 		}
 	}
 	
-	cout << "Point max 1  : x =  " << point_vote_1.x << " y = "<< point_vote_1.y << "Point_max_2 : x = "<< point_vote_2.x<< "  y  = "<< point_vote_2.y << endl;			
-	return vote_map_visualisation;
+	//cout << "Point max 1  : x =  " << point_vote_1.x << " y = "<< point_vote_1.y << "Point_max_2 : x = "<< point_vote_2.x<< "  y  = "<< point_vote_2.y << endl;			
+	
+	Mat circle_point = circle_eye(vote_map_visualisation,point_vote_1);
+	//showPic(circle_point);
+	imwrite( "./demo.jpg", circle_point );
+	
+	return point_vote_1;
 }
 
-Mat recognition_face(Mat shape, Mat analyse, int treshold_lut, int treshold_face){
+
+ 
+ vector<float> create_histo(Point eye_center,int radius,Mat analyse){
+	 
+	std::vector<int> _values;
+	std::vector<float> _proba;
+	int MAX_GRAY_VALUE = 255;
+	
+	_values.resize(MAX_GRAY_VALUE);
+	//cout << "max gray value : " << image._max_gray_value <<endl;
+	for(int col = eye_center.x - radius ; col < eye_center.x + radius; col++){
+		for(int row = eye_center.y - radius; row < eye_center.y + radius; row++){
+			_values[(int)analyse.at<uchar>(row,col)] = ++_values[(int)analyse.at<uchar>(row,col)];
+			//cout << _values[(int)analyse.at<uchar>(row,col)] << endl;
+		}
+	}
+	
+	/*
+	int count = 0;
+	for(int grey = 0; grey < MAX_GRAY_VALUE; grey++){
+		cout << _values[grey] << endl;
+		count+=_values[grey];
+	}
+	cout<<count<<endl;
+	*/
+	
+	_proba.resize(MAX_GRAY_VALUE);
+	double count = 0.0;
+	for(int grey = 0; grey < MAX_GRAY_VALUE; grey++){
+
+				_proba[grey] = ((double)_values[grey]) / ((double)radius*radius*4);
+				//cout << "indice : "<< grey<<  "% : "<<_proba[grey] << endl;
+				//count+= _proba[grey];
+				
+		}
+	//cout<< count << "  <----- should be 1 " << endl;
+	
+	return _proba;
+ }
+
+vector<float> recognition_face(Mat shape, Mat analyse, int treshold_lut, int treshold_face){
 	vector<vector<int> > Ix(shape.cols, vector<int>(shape.rows,0));
 	vector<vector<int> > Iy(shape.cols, vector<int>(shape.rows,0));	
 	sobel(shape, Ix, Iy);
@@ -558,12 +617,12 @@ Mat recognition_face(Mat shape, Mat analyse, int treshold_lut, int treshold_face
 	//showPic(angle_alpha);
 	Mat angle_beta = get_angle_beta(shape,Ix,Iy,treshold_lut);
 	vector<int> LUT = create_LUT(angle_alpha,angle_beta);
+	
 	for(int i=0; i < 255; i++){
 	//cout << LUT[i] << endl;
 	}
 	//Mat voting_mat(shape,LUT,20);
-	
-	//Prendre Photo (on simule avec shape pour le moment)
+
 	//Calculer Ix Iy de la nouvelle image (Sobel)
 	vector<vector<int> > Ix_face(analyse.cols, vector<int>(analyse.rows,0));
 	vector<vector<int> > Iy_face(analyse.cols, vector<int>(analyse.rows,0));	
@@ -571,7 +630,17 @@ Mat recognition_face(Mat shape, Mat analyse, int treshold_lut, int treshold_face
 	Mat contours_photo = get_contours(analyse, Ix_face, Iy_face,treshold_face);
 	//showPic(contours_photo);
 	
-	Mat centers = detect_circle_center(contours_photo,Ix_face, Iy_face, LUT);
+	Point eye_center = detect_circle_center(contours_photo,Ix_face, Iy_face, LUT);
 	//showPic(centers);
-	return centers;
+	
+	Mat circle_point = circle_eye(analyse,eye_center);
+	
+	//Show picture with circle around the eye
+	//showPic(circle_point);
+	
+	int radius = 20;
+	vector<float> histo = create_histo(eye_center,radius,analyse);
+	//cout<< "histogramme calculé" << endl;
+	
+	return histo;
 }
