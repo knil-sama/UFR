@@ -283,7 +283,8 @@ public class PostgreSQLJDBC {
 			JSONArray histogram) throws Exception {
 		ArrayList<Integer> user_matched = findUsersByBiometric(histogram);
 		if (user_matched.size() <= 0) {
-			throw new Exception("user not find by biometrics");
+			//throw new Exception("user not find by biometrics");
+			return 0;
 		}
 		Iterator<Integer> iter_user = user_matched.iterator();
 		int user_id;
@@ -298,7 +299,7 @@ public class PostgreSQLJDBC {
 			}
 		} while (iter_user.hasNext());
 
-		return null;
+		return 0;
 	}
 
 	private Integer sessionValid(int user_id, int tokenSession) {

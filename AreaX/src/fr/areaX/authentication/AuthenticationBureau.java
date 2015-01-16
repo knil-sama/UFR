@@ -25,7 +25,9 @@ public class AuthenticationBureau implements AuthenticationInterface{
 		
 		iris = new IrisScanProcessor();
 	}
-	public boolean authenticate(byte[] userData1, byte[] userData2,JSONObject histogram){
+	
+	@Override
+	public int authenticate(byte[] userData1, byte[] userData2,JSONObject histogram){
 		if(verifySmartCardIdentity(userData1, userData2)){
 			PostgreSQLJDBC server = new PostgreSQLJDBC();
 			//Second step: query the database for the data
@@ -41,15 +43,15 @@ public class AuthenticationBureau implements AuthenticationInterface{
 			
 			try {
 				Integer tokenSessionActive = server.authenticate(identityCard,tokenCard, histogram.getJSONArray("0"));
-				if(tokenSessionActive != null){
-					return true;
+				if(tokenSessionActive != 0){
+					return tokenSessionActive;
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		return false;
+		return 0;
 	}
 	private int convertTokenCard(byte[] cardContent) {
 		byte[] cardTokenByte = new byte[7];
@@ -105,10 +107,7 @@ public class AuthenticationBureau implements AuthenticationInterface{
 			System.out.println("[INFO] Authentication attempted with false data");
 			return false;
 		}
-		
-		
-		
-		
+	
 		return true;
 	}
 

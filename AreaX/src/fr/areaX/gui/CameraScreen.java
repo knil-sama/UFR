@@ -221,12 +221,12 @@ public class CameraScreen extends StackPane implements XNode{
 
 		slider = new Slider();
 		slider.setMin(0);
-		slider.setMax(1);
+		slider.setMax(255);
 		slider.setValue(0.5);
 		slider.setShowTickLabels(true);
 		slider.setShowTickMarks(true);
-		slider.setMajorTickUnit(0.5);
-		slider.setMinorTickCount(5);
+		slider.setMajorTickUnit(5);
+		slider.setMinorTickCount(50);
 		slider.setBlockIncrement(10);
 
 		topPane.getChildren().add(cameraOptions);
@@ -294,9 +294,8 @@ public class CameraScreen extends StackPane implements XNode{
 									}
 								});
 								
-								int valInt = (int)((slider.getValue()*100)%101);
-								double value = (double)valInt/100;
-								System.out.println("Value is : " + value);
+								int valInt = (int)(slider.getValue());
+								System.out.println("Value is : " + valInt);
 								AreaX.getInstance().initBiometry();								
 							}
 							grabbedImage.flush();
