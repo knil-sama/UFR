@@ -28,8 +28,20 @@ public class AuthenticationBureau implements AuthenticationInterface{
 	public boolean authenticate(byte[] userData1, byte[] userData2,JSONObject histogram){
 		if(verifySmartCardIdentity(userData1, userData2)){
 			PostgreSQLJDBC server = new PostgreSQLJDBC();
+			//Second step: query the database for the data
+			//prune the tail
+			byte[] cardContent = new byte[12];
+			
+			for(int i =0; i<cardContent.length; i++	){
+				cardContent[i] = userData1[i];
+			}
+			int identityCard = convertIdentityCard(cardContent);
+			int tokenCard = convertTokenCard(cardContent); 
+			
+			
 			try {
-				if(server.authenticate(userData1, histogram)){
+				Integer tokenSessionActive = server.authenticate(identityCard,tokenCard, histogram.getJSONArray("0"));
+				if(tokenSessionActive != null){
 					return true;
 				}
 			} catch (Exception e) {
@@ -38,6 +50,22 @@ public class AuthenticationBureau implements AuthenticationInterface{
 			}
 		}
 		return false;
+	}
+	private int convertTokenCard(byte[] cardContent) {
+		byte[] cardTokenByte = new byte[7];
+		int ii = 5;
+		for(int i=0; i<7; i++){
+			cardTokenByte[i] = cardContent[ii++];
+		}
+		return SmartCardHelper.fromByteToInt(cardTokenByte);
+	}
+	private int convertIdentityCard(byte[] cardContent) {
+		byte[] cardIdentityByte = new byte[5];
+		
+		for(int i=0; i<5; i++){
+			cardIdentityByte[i] = cardContent[i];
+		}
+		return SmartCardHelper.fromByteToInt(cardIdentityByte);
 	}
 	/**
 	 * must be done after user
@@ -77,20 +105,7 @@ public class AuthenticationBureau implements AuthenticationInterface{
 			System.out.println("[INFO] Authentication attempted with false data");
 			return false;
 		}
-		//Second step: query the database for the data
-		byte[] cardIdentityByte = new byte[5];
-		byte[] cardTokenByte = new byte[7];
 		
-		for(int i=0; i<5; i++){
-			cardIdentityByte[i] = cardContent[i];
-		}
-		int ii = 5;
-		for(int i=0; i<7; i++){
-			cardTokenByte[i] = cardContent[ii++];
-		}
-		
-		int cardIdentityInt = SmartCardHelper.fromByteToInt(cardIdentityByte);
-		int cardTokenInt = SmartCardHelper.fromByteToInt(cardTokenByte);
 		
 		
 		
