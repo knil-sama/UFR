@@ -34,8 +34,7 @@ public class TestAuthentification {
 	@Test
 	public void testAuthenticate() {
 		PostgreSQLJDBC server = new PostgreSQLJDBC();
-		int id_card = 65;
-		int id_user = 67;
+		int id_card = 65,id_user = 67, id_session = 21;
 		server.createCard(65);
 		JSONArray json_histo = new JSONArray();
 		json_histo.put(0,0.5);
@@ -44,11 +43,10 @@ public class TestAuthentification {
 		Timestamp currentTimestamp = new Timestamp(date.getTime());
 		server.createUser(id_user, "clement", "demonchy", new Date(currentTimestamp.getTime()),json_histo);
 		server.attachCardToUser(id_card, id_user);
+		Integer token = server.generateSession(id_session,id_user,1);
 		try {
-			Integer tokenSessionActive = server.authenticate(id_card, id_user, json_histo);
-			if (tokenSessionActive != null) {
-				assertTrue(true);
-			}
+			Integer tokenSessionActive = server.authenticate(id_card, token, json_histo);
+			assertEquals(token,tokenSessionActive);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
