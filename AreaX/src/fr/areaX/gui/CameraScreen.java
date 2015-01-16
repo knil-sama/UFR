@@ -245,7 +245,7 @@ public class CameraScreen extends StackPane implements XNode{
 				}
 
 				webCam = Webcam.getWebcams().get(webCamIndex);
-				webCam.setViewSize(new Dimension(640,480));
+				webCam.setViewSize(new Dimension(320,240));
 				webCam.open();
 				startWebCamStream();
 
