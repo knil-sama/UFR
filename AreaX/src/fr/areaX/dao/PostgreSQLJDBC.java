@@ -59,7 +59,7 @@ public class PostgreSQLJDBC {
 			sql = "DROP TABLE IF EXISTS session CASCADE";
 			commande.executeUpdate(sql);
 			sql = "CREATE TABLE session(" + "id_session serial NOT NULL,"
-					+ "token text," + "time_creation timestamp with time zone,"
+					+ "token integer," + "time_creation timestamp with time zone,"
 					+ "time_end timestamp with time zone,"
 					+ "user_session integer," + "salt text,"
 					+ "CONSTRAINT session_pkey PRIMARY KEY (id_session))"
@@ -78,7 +78,7 @@ public class PostgreSQLJDBC {
 					+ "WITH (OIDS=FALSE);";
 			commande.executeUpdate(sql);
 			commande.close();
-			//LOG
+			// LOG
 			sql = "DROP TABLE IF EXISTS logs CASCADE";
 			commande.executeUpdate(sql);
 			sql = "CREATE TABLE logs("
@@ -119,7 +119,7 @@ public class PostgreSQLJDBC {
 		Connection c = connectToDatabase();
 		try {
 			Statement commande = c.createStatement();
-			String sql = "TRUNCATE users, log, cards,session, card_owner CASCADE";
+			String sql = "TRUNCATE users, logs, cards,session, card_owner CASCADE";
 			commande.executeUpdate(sql);
 			commande.close();
 			// c.commit();
@@ -260,16 +260,17 @@ public class PostgreSQLJDBC {
 			ResultSet result = commande.executeQuery(sql);
 			double value_distance;
 			ResultSetMetaData resultMeta = result.getMetaData();
-			while (result.next()){
+			while (result.next()) {
 				System.out.println("entre dans la boucle");
 				id_user = result.getInt(1);
 				histo_string = result.getString(2);
 				System.out.println(histo_string);
-				value_distance = histo_tested.compare_histo(new Histogramme(histo_string));
+				value_distance = histo_tested.compare_histo(new Histogramme(
+						histo_string));
 				System.out.println("valeur bhat" + value_distance);
 				if (value_distance < ACCEPTATION_TRESHOLD) {
 					users.add(id_user);
-				} 
+				}
 			}
 			commande.close();
 		} catch (Exception e) {
@@ -308,11 +309,11 @@ public class PostgreSQLJDBC {
 			// return la session la plus récente de cet utilisateur
 			String sql = "SELECT token, time_creation, time_end FROM session WHERE user_session = "
 					+ user_id + " ORDER BY time_creation DESC";
-			ResultSet last_session =commande.executeQuery(sql);
+			ResultSet last_session = commande.executeQuery(sql);
 			if (last_session.next()) {
-				int tokenLastSession = last_session.getInt(0);
+				int tokenLastSession = last_session.getInt("token");
 				if (tokenLastSession == tokenSession) {
-					Timestamp time_end = last_session.getTimestamp(2);
+					Timestamp time_end = last_session.getTimestamp("time_end");
 					java.util.Date date = new java.util.Date();
 					Timestamp currentTimestamp = new Timestamp(date.getTime());
 					// expired timestamp
@@ -372,7 +373,8 @@ public class PostgreSQLJDBC {
 		Statement commande = null;
 		try {
 			commande = c.createStatement();
-			String sql = "SELECT active FROM cards WHERE id_card="+ id_card_tested;
+			String sql = "SELECT active FROM cards WHERE id_card="
+					+ id_card_tested;
 			ResultSet result = commande.executeQuery(sql);
 			if (result.next()) {
 				boolean card_active = result.getBoolean(1);
@@ -401,6 +403,34 @@ public class PostgreSQLJDBC {
 			e.printStackTrace();
 			;
 		}
+	}
+
+	public Integer generateSession(int id_token, int id_user) {
+		return generateSession(id_token, id_user, 0);
+	}
+
+	public Integer generateSession(int id_session, int id_user, int hour_delay) {
+		Connection c = connectToDatabase();
+		Statement commande = null;
+		Integer token = null;
+		try {
+			commande = c.createStatement();
+			// TO DO generate Token, repasser à bytea pour générer dans SQL ?
+			token = 5;
+			String sql = "INSERT INTO session (id_session,token,time_creation,time_end,user_session,salt) VALUES("
+					+ id_session
+					+ ","
+					+ token
+					+ ", current_timestamp, CURRENT_TIMESTAMP + interval '"
+					+ hour_delay + " hours'"
+					+ "," + id_user + ","
+					+ "gen_salt('md5'))";
+			commande.execute(sql);
+			commande.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return token;
 	}
 
 }
