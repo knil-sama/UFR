@@ -23,7 +23,7 @@ public class TestDAO{
 	@Test
 	public void createCardFirstTime(){
 		PostgreSQLJDBC database = new PostgreSQLJDBC();
-		assertTrue(database.createCard());
+		assertTrue(database.createCard()  > 0);
 	}
 	@Test
 	public void createCardWithTheSameIdTime(){

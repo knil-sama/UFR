@@ -77,8 +77,8 @@ public class PostgreSQLJDBC {
 					+ "ON UPDATE NO ACTION ON DELETE NO ACTION)"
 					+ "WITH (OIDS=FALSE);";
 			commande.executeUpdate(sql);
-			commande.close();
 			// LOG
+			
 			sql = "DROP TABLE IF EXISTS logs CASCADE";
 			commande.executeUpdate(sql);
 			sql = "CREATE TABLE logs("
@@ -91,24 +91,24 @@ public class PostgreSQLJDBC {
 					+ "message text,"
 					+ "CONSTRAINT logs_pkey PRIMARY KEY (id_log),"
 					+ "CONSTRAINT logs_card_owner_fkey FOREIGN KEY (card_owner)"
-					+ "REFERENCES card_owner (id_card_owner) MATCH SIMPLE"
+					+ "REFERENCES card_owner (id_card_owner) MATCH SIMPLE "
 					+ "ON UPDATE NO ACTION ON DELETE NO ACTION,"
 					+ "CONSTRAINT logs_card_used_fkey FOREIGN KEY (card_used)"
-					+ "REFERENCES cards (id_card) MATCH SIMPLE"
+					+ "REFERENCES cards (id_card) MATCH SIMPLE "
 					+ "ON UPDATE NO ACTION ON DELETE NO ACTION,"
 					+ "CONSTRAINT logs_current_session_fkey FOREIGN KEY (current_session)"
-					+ "REFERENCES session (id_session) MATCH SIMPLE"
+					+ "REFERENCES session (id_session) MATCH SIMPLE "
 					+ "ON UPDATE NO ACTION ON DELETE NO ACTION,"
 					+ "CONSTRAINT logs_user_recognize_fkey FOREIGN KEY (user_recognize)"
-					+ "REFERENCES users (id_user) MATCH SIMPLE"
+					+ "REFERENCES users (id_user) MATCH SIMPLE "
 					+ "ON UPDATE NO ACTION ON DELETE NO ACTION)"
 					+ "WITH (OIDS=FALSE)";
 			commande.executeUpdate(sql);
 			commande.close();
-			// c.commit();
+			
 			c.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			// TOO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return true;
@@ -131,21 +131,24 @@ public class PostgreSQLJDBC {
 		return true;
 	}
 
-	public boolean createCard() {
+	public int createCard() {
 		Connection c = connectToDatabase();
+		int id_inserted = -1;
 		try {
 			Statement commande = c.createStatement();
-			String sql = "INSERT INTO cards (id_card) VALUES (DEFAULT)";
-			commande.executeUpdate(sql);
+			String sql = "INSERT INTO cards (id_card) VALUES (DEFAULT) RETURNING id_card";
+			ResultSet result = commande.executeQuery(sql);
+			if(result.next()){
+			id_inserted = result.getInt("id_card");
+			}
 			commande.close();
 			// c.commit();
 			c.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return false;
 		}
-		return true;
+		return id_inserted;
 	}
 
 	public boolean createCard(int id) {
@@ -432,5 +435,7 @@ public class PostgreSQLJDBC {
 		}
 		return token;
 	}
-
+	public void generateMockDatabase(){
+		createCard();
+	}
 }

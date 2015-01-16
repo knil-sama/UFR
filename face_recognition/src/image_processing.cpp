@@ -564,7 +564,7 @@ Point detect_circle_center(Mat contours,  vector<vector<int> > Ix,  vector<vecto
 	
 	Mat circle_point = circle_eye(vote_map_visualisation,point_vote_1);
 	//showPic(circle_point);
-	imwrite( "./demo.jpg", circle_point );
+	imwrite( "./demo.png", circle_point );
 	
 	return point_vote_1;
 }
