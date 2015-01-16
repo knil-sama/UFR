@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 import fr.areaX.authentication.AuthenticationBureau;
 import fr.areaX.authentication.AuthenticationInterface;
+import fr.areaX.biometry.IrisScanInterface;
+import fr.areaX.biometry.IrisScanProcessor;
 import fr.areaX.gui.XNode;
 import fr.areaX.smartcard.MockSmartCard;
 import fr.areaX.smartcard.SmartCardInterface;
@@ -135,7 +137,7 @@ public class AreaX {
 		th.start();
 	}
 	
-	public void initBiometry(){
+	public void initBiometry(final int threshold){
 		runNewThread(new Runnable() {
 			
 			@Override
@@ -143,10 +145,30 @@ public class AreaX {
 				
 				//Retrieve histogram here
 				
-				JSONObject histogramdeImage = new JSONObject(); //emulation
+				IrisScanInterface iris = new IrisScanProcessor();
+				JSONObject jsonReply = iris.parseImage("image_snap.jpg", threshold);
 				
-				int resultToken = authentication
-						.authenticate(lastUserData1, lastUserData2, histogramdeImage);
+				//JSONObject histogramdeImage = new JSONObject(); //emulation
+				System.out.println("JSON reply: "+jsonReply.toString());
+				
+				if (! jsonReply.has("reply")){
+					System.err.println("[FATAL] No reply found in JSON");
+					return;
+				}
+				
+				String reply = (String) jsonReply.get("reply");
+				
+				if (reply == null && !reply.equalsIgnoreCase("OK")){
+					System.out.println("[ERROR] Reply is not 'OK' in JSON received");
+					return;
+				}
+				
+				String histogram = jsonReply.get("data").toString();
+				
+				System.out.println("[INFO] Histogram : " + histogram);
+				
+				int resultToken = authentication.authenticate(
+						lastUserData1, lastUserData2, histogram);
 				
 				if (resultToken!=0){
 					gui.onEvent(className, XNode.BIOMETRY_ACCEPTED, null);

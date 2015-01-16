@@ -296,7 +296,7 @@ public class CameraScreen extends StackPane implements XNode{
 								
 								int valInt = (int)(slider.getValue());
 								System.out.println("Value is : " + valInt);
-								AreaX.getInstance().initBiometry();								
+								AreaX.getInstance().initBiometry(valInt);								
 							}
 							grabbedImage.flush();
 						}
