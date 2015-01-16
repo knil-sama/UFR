@@ -13,13 +13,20 @@ public class MockSmartCard implements SmartCardInterface {
 	private byte[] area2 = null;
 	
 	public MockSmartCard() throws CardException{
-		area1 = new byte[30];
-		
 		XCryptoKeys crytoKeys = new XCryptoKeys();
 		crytoKeys.loadPrivateKey("private.key");
+
+		area1 = new byte[12];
+
+		byte[] id = SmartCardHelper.fromIntToByte(12345);
+		byte[] token = SmartCardHelper.fromIntToByte(1234567);
 		
-		for(int i=0; i<30; i++){
-			area1[i] = SmartIdentityCard.getRandomByte();
+		for(int i=0; i<5; i++){
+			area1[i] = id[i];
+		}
+		int ii=5;
+		for(int i=0; i<7; i++){
+			area1[ii++] = token[i];
 		}
 		
 		try {
