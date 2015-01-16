@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.smartcardio.CardException;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import fr.areaX.authentication.AuthenticationBureau;
@@ -143,11 +144,11 @@ public class AreaX {
 				
 				//Retrieve histogram here
 				
-				JSONObject histogramdeImage = new JSONObject(); //emulation
-				
-				int resultToken = authentication
-						.authenticate(lastUserData1, lastUserData2, histogramdeImage);
-				
+				JSONArray histogramdeImage = new JSONArray(); //emulation
+				//TODO something
+				//int resultToken = authentication
+				//		.authenticate(lastUserData1, lastUserData2, histogramdeImage);
+				int resultToken = 0;
 				if (resultToken!=0){
 					gui.onEvent(className, XNode.BIOMETRY_ACCEPTED, null);
 				} else {

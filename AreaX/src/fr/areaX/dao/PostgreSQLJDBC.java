@@ -1,5 +1,7 @@
 package fr.areaX.dao;
 
+import static org.junit.Assert.assertEquals;
+
 import java.sql.Connection;
 
 import org.json.*;
@@ -19,6 +21,35 @@ import java.util.Iterator;
 
 public class PostgreSQLJDBC {
 
+	
+	public int addUser(int id_card,Date birthday,String firstName, String lastName,String histogram){
+		PostgreSQLJDBC server = new PostgreSQLJDBC();
+		server.createCard(id_card);
+		int id_user = server.createUser(firstName, lastName, birthday, new JSONArray(histogram));
+		server.attachCardToUser(id_card, id_user);
+		return server.createSession(id_user, 6);
+	}
+	private int createSession(int id_user, int hour_delay) {
+		Connection c = connectToDatabase();
+		Statement commande = null;
+		Integer token = null;
+		try {
+			commande = c.createStatement();
+			// TO DO generate Token, repasser à bytea pour générer dans SQL ?
+			token = 5;
+			String sql = "INSERT INTO session (id_session,token,time_creation,time_end,user_session,salt) VALUES(DEFAULT,"
+					+ token
+					+ ", current_timestamp, CURRENT_TIMESTAMP + interval '"
+					+ hour_delay + " hours'"
+					+ "," + id_user + ","
+					+ "gen_salt('md5'))";
+			commande.execute(sql);
+			commande.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return token;		
+	}
 	private Connection connectToDatabase() {
 		Connection c = null;
 		try {
@@ -216,7 +247,7 @@ public class PostgreSQLJDBC {
 	 * @return
 	 */
 	public int createUser(String first_name, String last_name,
-			Date birthdate, JSONObject histo) {
+			Date birthdate, JSONArray histo) {
 		Connection c = connectToDatabase();
 		int id_user_inserted = -1;
 		try {
@@ -459,7 +490,7 @@ public class PostgreSQLJDBC {
 		int id_card_inactive = createCard();
 		setCardActive(id_card_inactive, false);
 		int id_card_none_affected = createCard();
-		createUser("clement", "demonchy", new Date(0),new JSONObject("[0.4,0.6]"));
+		createUser("clement", "demonchy", new Date(0),new JSONArray("[0.4,0.6]"));
 		
 	}
 	
