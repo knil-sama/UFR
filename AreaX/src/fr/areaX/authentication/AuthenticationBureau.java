@@ -132,7 +132,7 @@ public class AuthenticationBureau implements AuthenticationInterface{
 	public boolean authenticateByBiometry(String imgUrl) {
 		
 		try {	
-			JSONObject jsonReply = iris.parseImage(imgUrl);
+			JSONObject jsonReply = iris.parseImage(imgUrl, 0);
 
 			String processorStatus = (String)jsonReply.get("reply");
 

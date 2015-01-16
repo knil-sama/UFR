@@ -1,6 +1,5 @@
 package fr.areaX.authentication;
 
-import org.json.JSONObject;
 
 public interface AuthenticationInterface {
 
