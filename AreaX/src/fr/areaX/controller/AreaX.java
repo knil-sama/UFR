@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.smartcardio.CardException;
 
+import org.json.JSONObject;
+
 import fr.areaX.authentication.AuthenticationBureau;
 import fr.areaX.authentication.AuthenticationInterface;
 import fr.areaX.gui.XNode;
@@ -16,6 +18,8 @@ public class AreaX {
 	private SmartCardInterface smartCard;
 	private XNode gui = null;
 	private AuthenticationInterface authentication;
+	private byte[] lastUserData1;
+	private byte[] lastUserData2;
 	
 	private final String className = this.getClass().getSimpleName();
 
@@ -65,6 +69,8 @@ public class AreaX {
 							rejected = false;
 							accepted = false;
 							gui.onEvent(null, XNode.NO_SMART_CARD, null);
+							lastUserData1 = null;
+							lastUserData2 = null;
 						}
 						
 						try {
@@ -75,7 +81,6 @@ public class AreaX {
 						
 						hasCard = smartCard.hasCard();
 						//System.out.println("[VERBOSE] Card in reader: " + hasCard );
-
 					}
 					
 					try {
@@ -107,6 +112,8 @@ public class AreaX {
 
 						gui.onEvent(null, XNode.SMART_CARD_UPDATED, null);
 						
+						lastUserData1 = userData1;
+						lastUserData2 = userData2;
 						
 					} catch (CardException e) {
 						gui.onEvent(null, XNode.SMART_CARD_IO_ERROR, null);
@@ -133,10 +140,15 @@ public class AreaX {
 			
 			@Override
 			public void run() {
-				boolean result = 
-						authentication.authenticateByBiometry("image_snap.jpg");
 				
-				if (result){
+				//Retrieve histogram here
+				
+				JSONObject histogramdeImage = new JSONObject(); //emulation
+				
+				int resultToken = authentication
+						.authenticate(lastUserData1, lastUserData2, histogramdeImage);
+				
+				if (resultToken!=0){
 					gui.onEvent(className, XNode.BIOMETRY_ACCEPTED, null);
 				} else {
 					gui.onEvent(className, XNode.BIOMETRY_REJECTED, null);

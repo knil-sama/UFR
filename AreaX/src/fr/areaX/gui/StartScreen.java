@@ -68,7 +68,7 @@ public class StartScreen extends StackPane implements XNode {
 			startMessage.setText(insertMessage);
 			break;
 		case XNode.SMART_CARD_VERIFIED:
-			startMessage.setText("Welcome, Updating card");
+			startMessage.setText("Welcome, Do not remove the card");
 			break;
 		case XNode.SMART_CARD_REFUSED:
 			startMessage.setText("Card Refused, please remove the card");
