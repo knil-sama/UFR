@@ -173,10 +173,9 @@ public class AreaX {
 				
 				System.out.println("[INFO] Histogram : " + histogram);
 				
-				int resultToken = authentication.authenticate(
+				resultToken = authentication.authenticate(
 						lastUserData1, lastUserData2, histogram);
 				
->>>>>>> 0c0714686b5653425a87830fd252d1e09586366c
 				if (resultToken!=0){
 					gui.onEvent(className, XNode.BIOMETRY_ACCEPTED, null);
 				} else {

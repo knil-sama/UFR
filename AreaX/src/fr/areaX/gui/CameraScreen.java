@@ -180,9 +180,9 @@ public class CameraScreen extends StackPane implements XNode{
 		double height = webCamPane.getHeight();
 		double width = webCamPane.getWidth();
 
-		imgWebCamCapturedImage.setFitHeight(height);
+		imgWebCamCapturedImage.setFitHeight(400);
 		imgWebCamCapturedImage.setFitWidth(width);
-		imgWebCamCapturedImage.prefHeight(height);
+		imgWebCamCapturedImage.prefHeight(400);
 		imgWebCamCapturedImage.prefWidth(width);
 		imgWebCamCapturedImage.setPreserveRatio(true);
 

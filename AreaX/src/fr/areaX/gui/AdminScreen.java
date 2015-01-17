@@ -12,14 +12,18 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 
-public class AdminScreen extends StackPane implements XNode {
+public class AdminScreen extends VBox implements XNode {
 
 	private final String className = this.getClass().getSimpleName();
 	
+	StackPane boss = new StackPane();
 	VBox rootPane = new VBox();
 	
 	HBox userform = new HBox();
@@ -30,6 +34,11 @@ public class AdminScreen extends StackPane implements XNode {
 	private Label dobLabel = new Label("Date of birth");
 	private TextField dobField = new TextField();
 	
+	private BorderPane nav = new BorderPane();
+	private HBox titleContainer = new HBox();
+	private String appName = "Area X - Admin";
+	private Label title = new Label(appName);
+
 	
 	private CameraNode cameraNode = new CameraNode();
 
@@ -54,13 +63,25 @@ public class AdminScreen extends StackPane implements XNode {
 	
 	private void initlayout() {
 		
+		getChildren().addAll(nav, boss);
+		
+		nav.setLeft(titleContainer);
+		nav.setStyle("-fx-background-color: #686d76; -fx-text-fill: #dcdde0;");
+		nav.setPadding(new Insets(10, 10, 10, 10));
+		nav.setMinHeight(50);
+		titleContainer.getChildren().addAll(title);
+		
 		userform.getChildren().addAll(fnLabel,fnField, lnLabel, 
 				lnField, dobLabel, dobField);
+		
+		title.setFont(new Font("Impact", 30));
+		title.setStyle("-fx-text-fill: #ffffff");
+		title.setEffect(new DropShadow());
 		
 		rootPane.getChildren().addAll(userform, cameraNode,
 				createUserBtn, status);
 		
-		getChildren().addAll(rootPane);
+		boss.getChildren().addAll(rootPane);
 		
 		
 		// style
@@ -68,7 +89,7 @@ public class AdminScreen extends StackPane implements XNode {
 		userform.setSpacing(5);
 		userform.setAlignment(Pos.CENTER);
 		rootPane.setAlignment(Pos.CENTER);
-		setPadding(new Insets(20));
+		boss.setPadding(new Insets(20));
 		
 		createUserBtn.setOnAction(new EventHandler<ActionEvent>() {
 			
